@@ -1,0 +1,11 @@
+inflection==0.3.1
+more-itertools==2.5.0
+numpy==1.12.1
+pandas==0.19.2
+python-dateutil==2.6.0
+pytz==2016.10
+Quandl==3.1.0
+requests==2.13.0
+scikit-learn==0.18.1
+scipy==0.19.0
+six==1.10.0
