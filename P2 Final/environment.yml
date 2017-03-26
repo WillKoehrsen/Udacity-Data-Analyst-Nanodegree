@@ -1,0 +1,23 @@
+name: Project2
+channels:
+- defaults
+dependencies:
+- inflection=0.3.1=py36_0
+- mkl=2017.0.1=0
+- more-itertools=2.5.0=py36_0
+- numpy=1.12.1=py36_0
+- pandas=0.19.2=np112py36_1
+- pip=9.0.1=py36_1
+- python=3.6.1=0
+- python-dateutil=2.6.0=py36_0
+- pytz=2016.10=py36_0
+- quandl=3.1.0=py36_0
+- requests=2.13.0=py36_0
+- scikit-learn=0.18.1=np112py36_1
+- scipy=0.19.0=np112py36_0
+- setuptools=27.2.0=py36_1
+- six=1.10.0=py36_0
+- vs2015_runtime=14.0.25123=0
+- wheel=0.29.0=py36_0
+prefix: C:\Users\wkoehrse\Anaconda3\envs\Project2
+
