@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE us-patent-grant SYSTEM "us-patent-grant-v44-2013-05-16.dtd" [ ]>
+<us-patent-grant lang="EN" dtd-version="v4.4 2013-05-16" file="USD0696839-20140107.XML" status="PRODUCTION" id="us-patent-grant" country="US" date-produced="20131224" date-publ="20140107">
+<us-bibliographic-data-grant>
+<publication-reference>
+<document-id>
+<country>US</country>
+<doc-number>D0696839</doc-number>
+<kind>S1</kind>
+<date>20140107</date>
+</document-id>
+</publication-reference>
+<application-reference appl-type="design">
+<document-id>
+<country>US</country>
+<doc-number>29455647</doc-number>
+<date>20130523</date>
+</document-id>
+</application-reference>
+<us-application-series-code>29</us-application-series-code>
+<us-term-of-grant>
+<length-of-grant>14</length-of-grant>
+</us-term-of-grant>
+<classification-locarno>
+<edition>10</edition>
+<main-classification>0202</main-classification>
+</classification-locarno>
+<classification-national>
+<country>US</country>
+<main-classification>D 2743</main-classification>
+<further-classification> D2739</further-classification>
+</classification-national>
+<invention-title id="d2e53">Medical scrubs having removable cuffs</invention-title>
+<us-references-cited>
+<us-citation>
+<patcit num="00001">
+<document-id>
+<country>US</country>
+<doc-number>4601066</doc-number>
+<kind>A</kind>
+<name>Campbell</name>
+<date>19860700</date>
+</document-id>
+</patcit>
+<category>cited by examiner</category>
+<classification-national><country>US</country><main-classification>  2 70</main-classification></classification-national>
+</us-citation>
+<us-citation>
+<patcit num="00002">
+<document-id>
+<country>US</country>
+<doc-number>4737995</doc-number>
+<kind>A</kind>
+<name>Wiley</name>
+<date>19880400</date>
+</document-id>
+</patcit>
+<category>cited by examiner</category>
+<classification-national><country>US</country><main-classification>  2114</main-classification></classification-national>
+</us-citation>
+<us-citation>
+<patcit num="00003">
+<document-id>
+<country>US</country>
+<doc-number>4860388</doc-number>
+<kind>A</kind>
+<name>Dean</name>
+<date>19890800</date>
+</document-id>
+</patcit>
+<category>cited by examiner</category>
+<classification-national><country>US</country><main-classification>  2247</main-classification></classification-national>
+</us-citation>
+<us-citation>
+<patcit num="00004">
+<document-id>
+<country>US</country>
+<doc-number>D341919</doc-number>
+<kind>S</kind>
+<name>Grimes</name>
+<date>19931200</date>
+</document-id>
+</patcit>
+<category>cited by examiner</category>
+<classification-national><country>US</country><main-classification>D 2743</main-classification></classification-national>
+</us-citation>
+<us-citation>
+<patcit num="00005">
+<document-id>
+<country>US</country>
+<doc-number>5539930</doc-number>
+<kind>A</kind>
+<name>Sesselmann</name>
+<date>19960700</date>
+</document-id>
+</patcit>
+<category>cited by examiner</category>
+<classification-national><country>US</country><main-classification>  22431</main-classification></classification-national>
+</us-citation>
+<us-citation>
+<patcit num="00006">
+<document-id>
+<country>US</country>
+<doc-number>D452988</doc-number>
+<kind>S</kind>
+<name>Ergezinger et al.</name>
+<date>20020100</date>
+</document-id>
+</patcit>
+<category>cited by examiner</category>
+<classification-national><country>US</country><main-classification>D 2743</main-classification></classification-national>
+</us-citation>
+<us-citation>
+<patcit num="00007">
+<document-id>
+<country>US</country>
+<doc-number>D476137</doc-number>
+<kind>S</kind>
+<name>McFarlane</name>
+<date>20030600</date>
+</document-id>
+</patcit>
+<category>cited by applicant</category>
+</us-citation>
+<us-citation>
+<patcit num="00008">
+<document-id>
+<country>US</country>
+<doc-number>7203974</doc-number>
+<kind>B2</kind>
+<name>Jones et al.</name>
+<date>20070400</date>
+</document-id>
+</patcit>
+<category>cited by applicant</category>
+</us-citation>
+<us-citation>
+<patcit num="00009">
+<document-id>
+<country>US</country>
+<doc-number>D551826</doc-number>
+<kind>S</kind>
+<name>Lambert</name>
+<date>20071000</date>
+</document-id>
+</patcit>
+<category>cited by examiner</category>
+<classification-national><country>US</country><main-classification>D 2742</main-classification></classification-national>
+</us-citation>
+<us-citation>
+<patcit num="00010">
+<document-id>
+<country>US</country>
+<doc-number>D627137</doc-number>
+<kind>S</kind>
+<name>Keavey et al.</name>
+<date>20101100</date>
+</document-id>
+</patcit>
+<category>cited by applicant</category>
+</us-citation>
+<us-citation>
+<patcit num="00011">
+<document-id>
+<country>US</country>
+<doc-number>D661466</doc-number>
+<kind>S</kind>
+<name>Taft</name>
+<date>20120600</date>
+</document-id>
+</patcit>
+<category>cited by examiner</category>
+<classification-national><country>US</country><main-classification>D 2743</main-classification></classification-national>
+</us-citation>
+<us-citation>
+<patcit num="00012">
+<document-id>
+<country>US</country>
+<doc-number>2012/0311759</doc-number>
+<kind>A1</kind>
+<name>Moore</name>
+<date>20121200</date>
+</document-id>
+</patcit>
+<category>cited by examiner</category>
+<classification-national><country>US</country><main-classification>  2 69</main-classification></classification-national>
+</us-citation>
+</us-references-cited>
+<number-of-claims>1</number-of-claims>
+<us-exemplary-claim>1</us-exemplary-claim>
+<us-field-of-classification-search>
+<classification-national>
+<country>US</country>
+<main-classification>D 2717</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2731</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2749</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2750</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2840</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2841</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2844</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2847</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2848</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2850</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2853</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2742</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2743</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2857</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2739</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>D 2720</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>  2 90</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>  2106</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>  2113</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>  2115</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>  2227</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>  2228</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>  2242</main-classification>
+</classification-national>
+<classification-national>
+<country>US</country>
+<main-classification>  2247</main-classification>
+</classification-national>
+</us-field-of-classification-search>
+<figures>
+<number-of-drawing-sheets>6</number-of-drawing-sheets>
+<number-of-figures>9</number-of-figures>
+</figures>
+<us-parties>
+<us-applicants>
+<us-applicant sequence="001" app-type="applicant" designation="us-only">
+<addressbook>
+<last-name>Harris</last-name>
+<first-name>Marilyn</first-name>
+<address>
+<city>Powder Springs</city>
+<state>GA</state>
+<country>US</country>
+</address>
+</addressbook>
+<residence>
+<country>US</country>
+</residence>
+</us-applicant>
+</us-applicants>
+<inventors>
+<inventor sequence="001" designation="us-only">
+<addressbook>
+<last-name>Harris</last-name>
+<first-name>Marilyn</first-name>
+<address>
+<city>Powder Springs</city>
+<state>GA</state>
+<country>US</country>
+</address>
+</addressbook>
+</inventor>
+</inventors>
+<agents>
+<agent sequence="01" rep-type="attorney">
+<addressbook>
+<orgname>Crose Law LLC</orgname>
+<address>
+<country>unknown</country>
+</address>
+</addressbook>
+</agent>
+<agent sequence="02" rep-type="attorney">
+<addressbook>
+<last-name>Crose</last-name>
+<first-name>Bradley D.</first-name>
+<address>
+<country>unknown</country>
+</address>
+</addressbook>
+</agent>
+</agents>
+</us-parties>
+<examiners>
+<primary-examiner>
+<last-name>Johnson</last-name>
+<first-name>Rashida</first-name>
+<department>2916</department>
+</primary-examiner>
+</examiners>
+</us-bibliographic-data-grant>
+<drawings id="DRAWINGS">
+<figure id="Fig-EMI-D00000" num="00000">
+<img id="EMI-D00000" he="206.93mm" wi="238.42mm" file="USD0696839-20140107-D00000.TIF" alt="embedded image" img-content="drawing" img-format="tif"/>
+</figure>
+<figure id="Fig-EMI-D00001" num="00001">
+<img id="EMI-D00001" he="239.52mm" wi="164.68mm" file="USD0696839-20140107-D00001.TIF" alt="embedded image" img-content="drawing" img-format="tif"/>
+</figure>
+<figure id="Fig-EMI-D00002" num="00002">
+<img id="EMI-D00002" he="227.92mm" wi="143.59mm" file="USD0696839-20140107-D00002.TIF" alt="embedded image" img-content="drawing" img-format="tif"/>
+</figure>
+<figure id="Fig-EMI-D00003" num="00003">
+<img id="EMI-D00003" he="231.90mm" wi="143.59mm" file="USD0696839-20140107-D00003.TIF" alt="embedded image" img-content="drawing" img-format="tif"/>
+</figure>
+<figure id="Fig-EMI-D00004" num="00004">
+<img id="EMI-D00004" he="233.43mm" wi="122.85mm" file="USD0696839-20140107-D00004.TIF" alt="embedded image" img-content="drawing" img-format="tif"/>
+</figure>
+<figure id="Fig-EMI-D00005" num="00005">
+<img id="EMI-D00005" he="122.85mm" wi="147.83mm" file="USD0696839-20140107-D00005.TIF" alt="embedded image" img-content="drawing" img-format="tif"/>
+</figure>
+<figure id="Fig-EMI-D00006" num="00006">
+<img id="EMI-D00006" he="255.44mm" wi="131.06mm" file="USD0696839-20140107-D00006.TIF" alt="embedded image" img-content="drawing" img-format="tif"/>
+</figure>
+</drawings>
+<description id="description">
+<?brief-description-of-drawings description="Brief Description of Drawings" end="lead"?>
+<description-of-drawings>
+<p id="p-0001" num="0001"><figref idref="DRAWINGS">FIG. 1</figref> is a front perspective view of medical scrubs having removable cuffs illustrating the new, original and ornamental design;</p>
+<p id="p-0002" num="0002"><figref idref="DRAWINGS">FIG. 2</figref> is a cross-sectional view thereof, taken along line <b>2</b>-<b>2</b> in <figref idref="DRAWINGS">FIG. 1</figref>;</p>
+<p id="p-0003" num="0003"><figref idref="DRAWINGS">FIG. 3</figref> is a front elevational view thereof;</p>
+<p id="p-0004" num="0004"><figref idref="DRAWINGS">FIG. 4</figref> is a rear elevational view thereof;</p>
+<p id="p-0005" num="0005"><figref idref="DRAWINGS">FIG. 5</figref> is a right side elevational view thereof;</p>
+<p id="p-0006" num="0006"><figref idref="DRAWINGS">FIG. 6</figref> is a left side elevational view thereof;</p>
+<p id="p-0007" num="0007"><figref idref="DRAWINGS">FIG. 7</figref> is a top plan view thereof;</p>
+<p id="p-0008" num="0008"><figref idref="DRAWINGS">FIG. 8</figref> is a bottom plan view thereof; and,</p>
+<p id="p-0009" num="0009"><figref idref="DRAWINGS">FIG. 9</figref> is a front perspective view thereof, showing the cuffs unattached.</p>
+<p id="p-0010" num="0010">The broken lines shown in the drawings are included for the purpose of illustrating environmental structure and form no part of the claimed design.</p>
+</description-of-drawings>
+<?brief-description-of-drawings description="Brief Description of Drawings" end="tail"?>
+</description>
+<us-claim-statement>CLAIM</us-claim-statement>
+<claims id="claims">
+<claim id="CLM-00001" num="00001">
+<claim-text>The ornamental design for medical scrubs having removable cuffs, as shown and described.</claim-text>
+</claim>
+</claims>
+</us-patent-grant>
