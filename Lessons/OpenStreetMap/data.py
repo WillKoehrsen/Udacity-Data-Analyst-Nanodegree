@@ -204,7 +204,7 @@ def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIE
                 node_attribs[key] = value
 
         # Handle the information in the secondary tags
-        for tag in element.iter('tag'):
+        if element.tag == 'tag':
             if PROBLEMCHARS.search(tag.attrib['k']):
                 pass
             else:
