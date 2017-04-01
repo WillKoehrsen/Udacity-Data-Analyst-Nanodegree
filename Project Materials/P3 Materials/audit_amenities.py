@@ -1,36 +1,48 @@
 import xml.etree.cElementTree as ET
-from collections import defaultdict
 
-filename = 'cleveland_ohio.xml'
+map_file = 'intermediateSample.xml'
 source_file = 'amenitiesSource.xml'
 
-count_types = {'node': 0 , 'way': 0, 'relation' :0}
-count_amenities = {}
+# The keys will be the amenities and the value the number of times in appears
+count_amenities = dict()
 
-for _ , elem in ET.iterparse(filename):
-	tag = elem.tag
-	if tag == 'node':
-		for entry in elem.iter('tag'):
-			if entry.attrib['k'] == 'amenity':
-				amenity = entry.attrib['v']
-				if amenity not in count_amenities.keys():
-					count_amenities[amenity] = 1
-				else:
-					count_amenities[amenity] += 1
+# Iterate through the osm file
+for _ , elem in ET.iterparse(map_file):
+	# Iterate through all the tags named tag
+	for entry in elem.iter('tag'):
+		# Find the amenity attributes
+		if entry.attrib['k'] == 'amenity':
+			amenity = entry.attrib['v']
+			# Count the number of times each amenity appears in the data
+			# If amenity is not in dictionary, start counting at one
+			# If the amenity is in the dictionary, increment the count
+			count_amenities[amenity] = count_amenities.get(amenity, 0) + 1
 
+# Create a tree for parsing the XML from the webpage
+source_tree = ET.parse(source_file)
+source_root = source_tree.getroot()
 
+# The list of verified amenities will be a set of unique names
 amenities_from_source = set()
-for _, elem in ET.iterparse(source_file):
-	tag = elem.tag
-	if tag == 'table':
-		if elem.attrib['class'] == 'wikitable':
-			for a in elem.iter('a'):
-				if a.text:
-					amenity = a.text.strip()
-					amenities_from_source.add(amenity)
 
-print(amenities_from_source)
+# Table class has been identified from inspection of HTML
+for table in source_root.iter('table'):
+	if table.attrib['class'] == 'wikitable':
+		for row in table:
+			#Iterate through the data in each row of the table
+			for data in row:
+				for element in data:
+					if element.tag == 'a':
+						if element.text:
+							amenities_from_source.add(element.text.strip())
+
+# Identify the amenities in the map not verified on the openstreetmap website
+non_verified_amenities = dict()
 
 for key in count_amenities:
 	if key not in amenities_from_source:
-		print(key)
+		# If key is not in dictionary, start counting at one
+		# If the key is in the dictionary, increment the count
+		non_verified_amenities[key] = non_verified_amenities.get(key, 0) + 1
+
+print(non_verified_amenities)
