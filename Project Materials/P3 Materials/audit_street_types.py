@@ -18,22 +18,20 @@ import mappings
 osmfile = "cleveland_ohio.xml"
 street_type_re = re.compile(r'\b\S+\.?$', re.IGNORECASE)
 
-
 expected = ["Street", "Avenue", "Boulevard", "Drive", "Court", "Place", "Square", "Lane", "Road", 
             "Trail", "Parkway", "Commons"]
 
-# UPDATE THIS VARIABLE
-street_mapping = mappings.street_mapping
-
 
 def audit_street_type(street_types, street_name):
+    # Check to make sure there are no unexpected characters in the street name
     m = street_type_re.search(street_name)
     if m:
         street_type = m.group()
-        if street_type not in expected:
+        if street_type not in expected: 
+            # Add the non-standard street names to a set within a dictionary
             street_types[street_type].add(street_name)
 
-
+# Check if the tag refers to a street name
 def is_street_name(elem):
     return (elem.attrib['k'] == "addr:street")
 
@@ -42,14 +40,14 @@ def audit(osmfile):
     osm_file = open(osmfile, "rb")
     street_types = defaultdict(set)
     for event, elem in ET.iterparse(osm_file):
-
         if elem.tag == "node" or elem.tag == "way":
             for tag in elem.iter("tag"):
-                if is_street_name(tag):
-                    audit_street_type(street_types, tag.attrib['v'])
+                if is_street_name(tag): #Check to see if the tag contains a street name
+                    audit_street_type(street_types, tag.attrib['v']) # Find the problematic street names
     osm_file.close()
     return street_types
 
+street_mapping = mappings.street_mapping
 
 def clean(name):
     name = name.split(" ")
@@ -60,9 +58,11 @@ def clean(name):
 
 count_dict = {}
 
-
+'''
 if __name__ == '__main__':
     street_types = audit(osmfile)
     for street in street_types:
         count_dict[street] = len(street_types[street])
-
+'''
+for street in mappings.street_mapping:
+    print("{} --> {}".format(street, street_mapping[street]))

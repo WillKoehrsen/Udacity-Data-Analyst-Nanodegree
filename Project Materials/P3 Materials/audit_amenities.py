@@ -29,14 +29,14 @@ def audit():
 	# The list of verified amenities will be a set of unique names
 	amenities_from_source = set()
 
-	# Table class has been identified from inspection of HTML
+	# Table class has been identified from inspection of the HTML
 	for table in source_root.iter('table'):
 		if table.attrib['class'] == 'wikitable':
 			for row in table:
 				#Iterate through the data in each row of the table
 				for data in row:
 					for element in data:
-						if element.tag == 'a':
+						if element.tag == 'a': # The entries in the table are under 'a' tags
 							if element.text:
 								amenities_from_source.add(element.text.strip())
 
