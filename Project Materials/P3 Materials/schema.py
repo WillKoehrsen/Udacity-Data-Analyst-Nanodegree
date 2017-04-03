@@ -61,5 +61,41 @@ schema = {
                 'type': {'required': True, 'type': 'string'}
             }
         }
+    },
+    'relation':{
+    'type': 'dict',
+    'schema': {
+            'id' : {'required': True, 'type': 'integer', 'coerce': int},
+            'user': {'required': True, 'type': 'string'},
+            'uid': {'required': True, 'type': 'integer', 'coerce': int},
+            'version': {'required': True, 'type': 'string'},
+            'changeset': {'required': True, 'type': 'integer', 'coerce': int},
+            'timestamp': {'required': True, 'type': 'string'}
+        }
+    },
+    'relation_members':{
+        'type': 'list',
+        'schema': {
+            'type': 'dict',
+            'schema' : {
+                'id': {'required': True, 'type':'integer', 'coerce': int},
+                'member_id' : {'required' : True, 'type': 'integer', 'coerce': int},
+                'type': {'required': True, 'type': 'string'},
+                'role': {'required': False, 'type': 'string'},
+                'position' : {'required': True, 'type': 'integer', 'coerce': int}
+            }
+        }
+    },
+    'relation_tags':{
+        'type': 'list',
+        'schema' : {
+            'type': 'dict',
+            'schema' : {
+                'id': {'required': True, 'type':'integer', 'coerce': int},
+                'key': {'required' : True, 'type': 'string'},
+                'value': {'required': True, 'type': 'string'},
+                'type': {'required': True, 'type' :'string'}
+            }
+        }
     }
 }

@@ -1,2 +1,8 @@
 *.xml filter=lfs diff=lfs merge=lfs -text
 *.osm filter=lfs diff=lfs merge=lfs -text
+*.csv filter=lfs diff=lfs merge=lfs -text
+ filter=lfs diff=lfs merge=lfs -text
+*.db filter=lfs diff=lfs merge=lfs -text
+directory filter=lfs diff=lfs merge=lfs -text
+.csv filter=lfs diff=lfs merge=lfs -text
+.db filter=lfs diff=lfs merge=lfs -text

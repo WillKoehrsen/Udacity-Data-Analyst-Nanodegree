@@ -159,66 +159,142 @@ import codecs
 import pprint
 import re
 import xml.etree.cElementTree as ET
-
 import cerberus
-
 import schema
+import audit_amenities
+import audit_dates
+import audit_elevation
+import audit_street_types
+import audit_zip
 
-OSM_PATH = "smallSample.xml"
+OSM_PATH = "cleveland_ohio.xml"
 
 NODES_PATH = "nodes.csv"
-NODE_TAGS_PATH = "nodes_tags.csv"
+NODE_TAGS_PATH = "node_tags.csv"
 WAYS_PATH = "ways.csv"
-WAY_NODES_PATH = "ways_nodes.csv"
-WAY_TAGS_PATH = "ways_tags.csv"
+WAY_NODES_PATH = "way_nodes.csv"
+WAY_TAGS_PATH = "way_tags.csv"
+RELATIONS_PATH = "relations.csv"
+RELATION_MEMBERS_PATH = "relation_members.csv"
+RELATION_TAGS_PATH = "relation_tags.csv"
 
-LOWER_COLON = re.compile(r'^([a-z]|_)+:([a-z]|_)+')
+COLON = re.compile(r'^([a-z]|_)+:([a-z]|_)+', re.IGNORECASE)
 PROBLEMCHARS = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
 
 SCHEMA = schema.schema
 
 # Make sure the fields order in the csvs matches the column order in the sql table schema
-NODE_FIELDS = ['id', 'lat', 'lon', 'ele', 'user', 'uid', 'version', 'changeset', 'timestamp']
+NODE_FIELDS = ['id', 'lat', 'lon', 'user', 'uid', 'version', 'changeset', 'timestamp']
 NODE_TAGS_FIELDS = ['id', 'key', 'value', 'type']
 WAY_FIELDS = ['id', 'user', 'uid', 'version', 'changeset', 'timestamp']
 WAY_TAGS_FIELDS = ['id', 'key', 'value', 'type']
 WAY_NODES_FIELDS = ['id', 'node_id', 'position']
+RELATION_FIELDS = ['id', 'user', 'uid', 'version', 'timestamp', 'changeset']
+RELATION_MEMBERS_FIELDS = ['id', 'member_id', 'role', 'type', 'position']
+RELATION_TAGS_FIELDS = ['id', 'key', 'value', 'type']
 
 
 def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIELDS,
-                  problem_chars=PROBLEMCHARS, default_tag_type='regular'):
-    """Clean and shape node or way XML element to Python dict"""
+                  relation_attr_fields = RELATION_FIELDS, problem_chars=PROBLEMCHARS, default_tag_type='regular'):
+    
+    """Clean and shape node, way, or relation, XML element to Python dict"""
 
     node_attribs = {}
     way_attribs = {}
+    relation_attribs = {}
+    relation_members = []
     way_nodes = []
-    tags = []  # Handle secondary tags the same way for both node and way elements
+    tags = []  # Handle secondary tags the same way for node, way, and relation elements
 
     # Handle the element if it is a node
     if element.tag == 'node':
-
-        #Handle the information in the top level node element
         node_id = element.attrib['id']
+
+        #Handle the information in the top level node element attributes
         for key, value in element.items():
             if key in NODE_FIELDS:
                 node_attribs[key] = value
 
-        # Handle the information in the secondary tags
+        # Iterate through all the "tag" tags under the node element
         for tag in element.iter('tag'):
+
+            # Pass on any tags with a problem character in the k attribute
             if PROBLEMCHARS.search(tag.attrib['k']):
-                pass
+                continue
             else:
                 secondary_tag_dict = {}
                 secondary_tag_dict['id'] = node_id
-                secondary_tag_dict['value'] = tag.attrib['v']
-                k_value = tag.attrib['k']
+                key = tag.attrib['k']
+                secondary_tag_dict['key'] = key                
                 
-                if LOWER_COLON.search(k_value):
-                    secondary_tag_dict['key'] = ':'.join(k_value.split(":")[1:])
-                    secondary_tag_dict['type'] = str(k_value.split(":")[0])
-                else:
-                    secondary_tag_dict['key'] = k_value
+                # Cleaning the elevation data tags
+                if key == 'ele':
+                    elevation = tag.attrib['v']
+                    elevation = audit_elevation.clean(elevation)
+                    if not elevation:
+                        continue # Remove the elevation dicts that are not valid
+                    secondary_tag_dict['value'] = elevation
                     secondary_tag_dict['type'] = 'regular'
+
+                # Cleaning the street data tags
+                elif key == 'addr:street' or key =='name':
+                    street = tag.attrib['v']
+                    street = audit_street_types.clean(street)
+                    secondary_tag_dict['value'] = street
+                    secondary_tag_dict['type'] = 'regular'
+
+                # Clean the zip code data tags
+                elif 'zip_left' in key:
+                    zip_code = tag.attrib['v']
+                    zip_code = audit_zip.clean(zip_code)
+                    if not zip_code:
+                        continue # Remove the zip codes that are not valid
+                    secondary_tag_dict['value'] = zip_code
+                    secondary_tag_dict['key'] = 'zip_left'
+                    secondary_tag_dict['type'] = 'tiger'
+
+                elif 'zip_right' in key:
+                    zip_code = tag.attrib['v']
+                    zip_code = audit_zip.clean(zip_code)
+                    if not zip_code:
+                        continue # Remove the zip codes that are not valid
+                    secondary_tag_dict['value'] = zip_code
+                    secondary_tag_dict['key'] = 'zip_right'
+                    secondary_tag_dict['type'] = 'tiger'
+
+                elif 'postcode' in key:
+                    zip_code = tag.attrib['v']
+                    zip_code = audit_zip.clean(zip_code)
+                    if not zip_code:
+                        continue # Remove the zip codes that are not valid
+                    secondary_tag_dict['value'] = zip_code
+                    secondary_tag_dict['key'] = 'postcode'
+                    secondary_tag_dict['type'] = 'addr'
+
+                # Clean the dates in the tags with gnis:created or gnis_edited attributes
+                elif key =='gnis:created' or key == 'gnis:edited':
+                    date = tag.attrib['v']
+                    date = audit_dates.clean(date)
+                    if not date:
+                        continue
+                    secondary_tag_dict['value' ] = date
+                    secondary_tag_dict['type'] = 'gnis'
+                    if tag.attrib['k'] == 'gnis:created':
+                        secondary_tag_dict['key'] = 'created'
+                    elif tag.attrib['k'] == 'gnis:edited':
+                        secondary_tag_dict['key'] = 'edited'
+
+                # The rest of the tags will not be cleaned
+                else:
+                    secondary_tag_dict['value'] = tag.attrib['v']
+                    
+                    # If there is a colon, the key is everything after the colon and the type is everything before
+                    if COLON.search(key):
+                        secondary_tag_dict['key'] = ':'.join(key.split(":")[1:])
+                        secondary_tag_dict['type'] = str(key.split(":")[0])
+                    else:
+                        secondary_tag_dict['key'] = key
+                        secondary_tag_dict['type'] = 'regular'
 
             tags.append(secondary_tag_dict)
 
@@ -226,31 +302,106 @@ def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIE
 
     # Handle the way elements
     elif element.tag == 'way':
-
-        # Handle the information in the top level way element
         way_id = element.attrib['id']
 
-        # Iterate through the attributes in the way tag
+        # Handle the information in the top level way element attributes
         for key, value in element.items():
             if key in WAY_FIELDS:
                 way_attribs[key] = value
 
-        # Iterate through the secondary tags
+        # Iterate through all the "tag" tags in the way element
         for tag in element.iter('tag'):
+
+            # Pass on any tags with a problem character in the k attribute
             if PROBLEMCHARS.search(tag.attrib['k']):
-                pass
+                continue
             else:
                 secondary_tag_dict = {}
                 secondary_tag_dict['id'] = way_id
-                secondary_tag_dict['value'] = tag.attrib['v']
-                k_value = tag.attrib['k']
+                key = tag.attrib['k']
+                secondary_tag_dict['key'] = key
 
-                if LOWER_COLON.search(k_value):
-                    secondary_tag_dict['key'] = ':'.join(k_value.split(":")[1:])
-                    secondary_tag_dict['type'] = str(k_value.split(":")[0])
-                else:
-                    secondary_tag_dict['key'] = k_value
+                # Clean the elevation data tags
+                if key == 'ele':
+                    elevation = tag.attrib['v']
+                    elevation = audit_elevation.clean(elevation)
+                    if not elevation:
+                        continue # Remove the elevation dicts that are not valid
+                    secondary_tag_dict['value'] = elevation
                     secondary_tag_dict['type'] = 'regular'
+
+                # Clean the street data tags
+                elif key == 'addr:street' or key == 'name':
+                    street = tag.attrib['v']
+                    street = audit_street_types.clean(street)
+                    secondary_tag_dict['value'] = street
+                    secondary_tag_dict['type'] = 'regular'
+
+                # Clean the amenity data tags
+                elif key == 'amenity':
+                    amenity = tag.attrib['v']
+                    amenity = audit_amenities.clean(amenity)
+                    if not amenity:
+                        continue # Remove the amenity dicts that are not valid
+                    secondary_tag_dict['value'] = amenity
+                    secondary_tag_dict['type'] = 'regular'
+
+
+                # Clean the dates in the tags with gnis:created or gnis:edited attributes
+                elif key =='gnis:created' or key == 'gnis:edited':
+                    date = tag.attrib['v']
+                    date = audit_dates.clean(date)
+                    if not date:
+                      continue
+                    secondary_tag_dict['value'] = date
+                    secondary_tag_dict['type'] = 'gnis'
+                    if tag.attrib['k'] == 'gnis:created':
+                        secondary_tag_dict['key'] = 'created'
+                    elif tag.attrib['k'] == 'gnis:edited':
+                        secondary_tag_dict['key'] = 'edited'
+    
+
+                # Clean the zip code data tags
+                elif 'zip_left' in key:
+                    zip_code = tag.attrib['v']
+                    zip_code = audit_zip.clean(zip_code)
+                    if not zip_code:
+                        continue # Remove the zip codes that are not valid
+                    secondary_tag_dict['value'] = zip_code
+                    secondary_tag_dict['key'] = 'zip_left'
+                    secondary_tag_dict['type'] = 'tiger'
+
+                elif 'zip_right' in key:
+                    zip_code = tag.attrib['v']
+                    zip_code = audit_zip.clean(zip_code)
+                    if not zip_code:
+                        continue # Remove the zip codes that are not valid
+                    secondary_tag_dict['value'] = zip_code
+                    secondary_tag_dict['key'] = 'zip_right'
+                    secondary_tag_dict['type'] = 'tiger'
+
+                elif 'postcode' in key:
+                    zip_code = tag.attrib['v']
+                    zip_code = audit_zip.clean(zip_code)
+                    if not zip_code:
+                        continue # Remove the zip codes that are not valid
+                    secondary_tag_dict['value'] = zip_code
+                    secondary_tag_dict['key'] = 'postcode'
+                    secondary_tag_dict['type'] = 'addr'
+
+                    
+                else:
+                    # The rest of the tags are not cleaned
+                    secondary_tag_dict['value'] = tag.attrib['v']
+
+                    #  If there is a colon, the key is everything after the colon and the type is everything before
+                    if COLON.search(key):
+                        secondary_tag_dict['key'] = ':'.join(key.split(":")[1:])
+                        secondary_tag_dict['type'] = str(key.split(":")[0])
+                    #  If there is no colon, the type is regular
+                    else:
+                        secondary_tag_dict['key'] = key
+                        secondary_tag_dict['type'] = 'regular'
 
             tags.append(secondary_tag_dict)
 
@@ -263,7 +414,76 @@ def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIE
 
             way_nodes.append(way_node_dict)
 
-    return {'way': way_attribs, 'way_nodes': way_nodes, 'way_tags': tags}
+        return {'way': way_attribs, 'way_nodes': way_nodes, 'way_tags': tags}
+
+    # Handle the information in the relation element
+    elif element.tag == 'relation':
+        relation_id = element.attrib['id']
+
+        # Handle the information in the top level relation element attributes
+        for key, value in element.items():
+            if key in RELATION_FIELDS:
+                relation_attribs[key] = value
+
+        # Iterate through the member tags and record their attributes
+        for i, member in enumerate(element.iter('member')):
+
+            # Create a new dictionary for each member
+            relation_member_dict = {}
+            relation_member_dict['id'] = relation_id
+            relation_member_dict['member_id'] = member.attrib['ref']
+            relation_member_dict['type'] = member.attrib['type']
+            relation_member_dict['role'] = member.attrib['role']
+            relation_member_dict['position'] = i
+
+            relation_members.append(relation_member_dict)
+
+        #  Iterate through all the "tag" tags in the relation element
+        for tag in element.iter('tag'):
+            # Skip over any tags that have problem characters in their key
+            if PROBLEMCHARS.search(tag.attrib['k']):
+                continue
+            else:
+                # Create a new dictionary for each tag
+                secondary_tag_dict = {}
+                secondary_tag_dict['id'] = relation_id
+                key = tag.attrib['k']
+                secondary_tag_dict['key'] = key
+
+                # Handle the elevation data tags
+                if key == 'ele':
+                    elevation = tag.attrib['v']
+                    elevation = audit_elevation.clean(elevation)
+                    if not elevation:
+                        continue # Remove the elevation dicts that are not valid
+                    secondary_tag_dict['value'] = elevation
+                    secondary_tag_dict['type'] = 'regular'
+
+                # Clean the zip code data tags
+                elif 'zip' in key:
+                    zip_code = tag.attrib['v']
+                    zip_code = audit_zip.clean(zip_code)
+                    if not zip_code:
+                        continue # Remove the zip codes that are not valid
+                    secondary_tag_dict['value'] = zip_code
+                    secondary_tag_dict['type'] = 'regular'
+
+                else:
+                    # The rest of the tags are not cleaned
+                    secondary_tag_dict['value'] = tag.attrib['v']
+
+                    #  If there is a colon, the key is everything after the colon and the type is everything before
+                    if COLON.search(key):
+                        secondary_tag_dict['key'] = ':'.join(key.split(":")[1:])
+                        secondary_tag_dict['type'] = str(key.split(":")[0])
+                    #  If there is no colon, the type is regular
+                    else:
+                        secondary_tag_dict['key'] = key
+                        secondary_tag_dict['type'] = 'regular'
+
+            tags.append(secondary_tag_dict)
+
+        return {'relation' : relation_attribs, 'relation_members' : relation_members, 'relation_tags': tags}
 
 
 # ================================================== #
@@ -295,7 +515,7 @@ class UnicodeDictWriter(csv.DictWriter, object):
 
     def writerow(self, row):
         super(UnicodeDictWriter, self).writerow({
-            k: (v.encode('utf-8') if isinstance(v, str) else v) for k, v in row.items()
+            k: v for k, v in row.items()
         })
 
     def writerows(self, rows):
@@ -309,27 +529,38 @@ class UnicodeDictWriter(csv.DictWriter, object):
 def process_map(file_in, validate):
     """Iteratively process each XML element and write to csv(s)"""
 
-    with codecs.open(NODES_PATH, 'w') as nodes_file, \
-         codecs.open(NODE_TAGS_PATH, 'w') as nodes_tags_file, \
-         codecs.open(WAYS_PATH, 'w') as ways_file, \
-         codecs.open(WAY_NODES_PATH, 'w') as way_nodes_file, \
-         codecs.open(WAY_TAGS_PATH, 'w') as way_tags_file:
+    # Open files with encoding of UTF-8 to prevent 'b' from being appended to beginning of each data point
+    # Rather than writing with encoding of 'UTF-8', open file with that encoding
+    with codecs.open(NODES_PATH, 'w', encoding='UTF-8') as nodes_file, \
+         codecs.open(NODE_TAGS_PATH, 'w', encoding='UTF-8') as nodes_tags_file, \
+         codecs.open(WAYS_PATH, 'w', encoding='UTF-8') as ways_file, \
+         codecs.open(WAY_NODES_PATH, 'w', encoding='UTF-8') as way_nodes_file, \
+         codecs.open(WAY_TAGS_PATH, 'w', encoding='UTF-8') as way_tags_file, \
+         codecs.open(RELATIONS_PATH, 'w', encoding='UTF-8') as relations_file, \
+         codecs.open(RELATION_MEMBERS_PATH, 'w', encoding='UTF-8') as relation_members_file, \
+         codecs.open(RELATION_TAGS_PATH, 'w', encoding='UTF-8') as relation_tags_file:
 
         nodes_writer = UnicodeDictWriter(nodes_file, NODE_FIELDS)
         node_tags_writer = UnicodeDictWriter(nodes_tags_file, NODE_TAGS_FIELDS)
         ways_writer = UnicodeDictWriter(ways_file, WAY_FIELDS)
         way_nodes_writer = UnicodeDictWriter(way_nodes_file, WAY_NODES_FIELDS)
         way_tags_writer = UnicodeDictWriter(way_tags_file, WAY_TAGS_FIELDS)
+        relations_writer = UnicodeDictWriter(relations_file, RELATION_FIELDS)
+        relation_members_writer = UnicodeDictWriter(relation_members_file, RELATION_MEMBERS_FIELDS)
+        relation_tags_writer = UnicodeDictWriter(relation_tags_file, RELATION_TAGS_FIELDS)
 
         nodes_writer.writeheader()
         node_tags_writer.writeheader()
         ways_writer.writeheader()
         way_nodes_writer.writeheader()
         way_tags_writer.writeheader()
+        relations_writer.writeheader()
+        relation_members_writer.writeheader()
+        relation_tags_writer.writeheader()
 
         validator = cerberus.Validator()
 
-        for element in get_element(file_in, tags=('node', 'way')):
+        for element in get_element(file_in, tags=('node', 'way', 'relation')):
             el = shape_element(element)
             if el:
                 if validate is True:
@@ -342,6 +573,10 @@ def process_map(file_in, validate):
                     ways_writer.writerow(el['way'])
                     way_nodes_writer.writerows(el['way_nodes'])
                     way_tags_writer.writerows(el['way_tags'])
+                elif element.tag == 'relation':
+                    relations_writer.writerow(el['relation'])
+                    relation_members_writer.writerows(el['relation_members'])
+                    relation_tags_writer.writerows(el['relation_tags'])
 
 
 if __name__ == '__main__':

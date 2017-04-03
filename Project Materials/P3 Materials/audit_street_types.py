@@ -13,6 +13,7 @@ import xml.etree.cElementTree as ET
 from collections import defaultdict
 import re
 import pprint
+import mappings
 
 osmfile = "cleveland_ohio.xml"
 street_type_re = re.compile(r'\b\S+\.?$', re.IGNORECASE)
@@ -22,13 +23,7 @@ expected = ["Street", "Avenue", "Boulevard", "Drive", "Court", "Place", "Square"
             "Trail", "Parkway", "Commons"]
 
 # UPDATE THIS VARIABLE
-mapping = { "St": "Street",
-            "St.": "Street",
-            "Ave": "Avenue",
-            "Ave.": "Avenue",
-            "Rd" : "Road",
-            "Rd." : "Road"
-            }
+street_mapping = mappings.street_mapping
 
 
 def audit_street_type(street_types, street_name):
@@ -56,14 +51,18 @@ def audit(osmfile):
     return street_types
 
 
-def update_name(name, mapping):
-
+def clean(name):
     name = name.split(" ")
-    if name[-1] in mapping.keys():
-        name[-1] = mapping[name[-1]]
+    if name[-1] in street_mapping:
+        name[-1] = street_mapping[name[-1]]
     name = ' '.join(name)
     return name
 
+count_dict = {}
+
+
 if __name__ == '__main__':
     street_types = audit(osmfile)
-    print(street_types)
+    for street in street_types:
+        count_dict[street] = len(street_types[street])
+
