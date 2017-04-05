@@ -1,10 +1,3 @@
-b'id',b'key',b'value',b'type'
-b'258219703',b'highway',b'service',b'regular'
-b'209809850',b'housenumber',b'1412',b'addr'
-b'209809850',b'street',b'West Lexington St.',b'addr'
-b'209809850',b'street:name',b'Lexington',b'addr'
-b'209809850',b'street:prefix',b'West',b'addr'
-b'209809850',b'street:type',b'Street',b'addr'
-b'209809850',b'building',b'yes',b'regular'
-b'209809850',b'levels',b'1',b'building'
-b'209809850',b'building_id',b'366409',b'chicago'
+version https://git-lfs.github.com/spec/v1
+oid sha256:0768976581740a7f39c4aca1c1e20c0e012c4c7a7407e33761e93e609adc0655
+size 466
