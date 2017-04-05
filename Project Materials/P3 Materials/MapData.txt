@@ -1,2 +1,0 @@
-I decided to work with the metro area of Cleveland because it is where I currently attend university, and I thought it would be intriguing to explore the city through the dataset after many hours spent experiencing the city on the ground. The data extract of Cleveland used for this project was downloaded from Mapzen Metro Extracts.
-https://mapzen.com/data/metro-extracts/metro/cleveland_ohio/. The area includes the city of Cleveland itself as well as the surrounding metro areas and communities. 
