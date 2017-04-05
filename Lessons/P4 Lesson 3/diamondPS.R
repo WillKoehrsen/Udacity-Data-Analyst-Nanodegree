@@ -57,4 +57,22 @@ by(diamonds$price, diamonds$clarity, summary, digits=max(getOption('digits')))
 
 qplot(x=color, y=price, data=diamonds, geom='boxplot')+
   coord_cartesian(ylim=c(300,10000))
+?diamonds
+summary(diamonds$depth)
+summary(diamonds$table)
+diamonds$table
 
+by(diamonds$price, diamonds$color, summary)
+J_diamonds_price = subset(diamonds, color=='J', price)
+IQR_J_price = ((summary(J_diamonds_price))[5]- (summary(J_diamonds_price)[2]))
+as.integer(summary(J_diamonds_price)[5]) - as.integer(summary(J_diamonds_price)[2])
+
+qplot(x=color, y= price/carat, data=diamonds, geom='boxplot')+
+  coord_cartesian(ylim=c(300,7500))
+
+qplot(x=carat, data=diamonds, binwidth = 0.25) + 
+  scale_x_continuous(lim = c(0,3), breaks=seq(0,3,0.25))
+
+with(diamonds, table(carat)[table(carat) > 2000])
+
+table(diamonds$carat)[table(diamonds$carat)>2000]
