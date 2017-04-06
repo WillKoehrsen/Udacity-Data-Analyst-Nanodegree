@@ -2,9 +2,18 @@ Lesson 4
 ========================================================
 
 ***
-
+getwd()
 ### Scatterplots and Perceived Audience Size
 Notes:
+```{r}
+getwd()
+list.files()
+
+pf = read.csv('pseudo_facebook.tsv', sep='\t')
+library(ggplot2)
+qplot(x = friend_count, y = friendships_initiated, data=pf)
+qplot(x = age, y = friend_count, data=pf)
+```
 
 ***
 
@@ -12,7 +21,7 @@ Notes:
 Notes:
 
 ```{r Scatterplots}
-
+ggplot(aes(x=tenure/365, y=likes), data=pf) + geom_point() + xlim(1,3) + xlab('Years on Network')
 ```
 
 ***
@@ -26,6 +35,10 @@ Response:
 Notes:
 
 ```{r ggplot Syntax}
+ggplot(aes(x=age, y=friend_count), data=pf) + geom_point(alpha=1/20) + xlab('Age of User')+
+  xlim(12, 90)
+
+ggplot(aes(x=tenure/365, y = likes_received), data=pf) + geom_jitter(alpha=1/5) + xlab('Number of Years on Network') + ylab('Likes Received') 
 
 ```
 
@@ -35,7 +48,7 @@ Notes:
 Notes:
 
 ```{r Overplotting}
-
+ggplot(aes(x=age, y=friend_count), data=pf) + geom_jitter(alpha=1/20) + xlim(12,90)
 ```
 
 #### What do you notice in the plot?
@@ -47,7 +60,11 @@ Response:
 Notes:
 
 ```{r Coord_trans()}
+?coord_trans
+ggplot(pf, aes(x=age, y=friend_count)) + geom_point(alpha=1/20) + coord_trans( y="sqrt") +
+  xlim(12,90)
 
+ggplot(pf, aes(x=age, y=friend_count)) + geom_point(alpha=1/20, position = position_jitter(h= 0)) + coord_trans( y="sqrt") +  xlim(12,90)
 ```
 
 #### Look up the documentation for coord_trans() and add a layer to the plot that transforms friend_count using the square root function. Create your plot!
@@ -64,6 +81,9 @@ Notes:
 Notes:
 
 ```{r Alpha and Jitter}
+ggplot(aes(x=age, y=friendships_initiated), data=pf) + geom_jitter(alpha=1/10, position=position_jitter(h=0)) + coord_trans(y='sqrt') + 
+  xlim(12,90) 
+
 
 ```
 
@@ -78,6 +98,17 @@ Notes:
 Notes:
 
 ```{r Conditional Means}
+install.packages('dplyr', dependencies = TRUE)
+library(dplyr)
+
+age_groups <- group_by(pf, age)
+pf.fc_byage <- summarize(age_groups,
+                         fc_mean = mean(friend_count),
+                         fc_median = median(as.numeric(friend_count)),
+                         n = n())
+
+pf.fc_byage <- arrange(pf.fc_byage, age)
+head(pf.fc_byage, 5)
 
 ```
 
@@ -85,6 +116,7 @@ Create your plot!
 
 ```{r Conditional Means Plot}
 
+ggplot(aes(x=age, y=fc_mean), data=pf.fc_byage) + geom_line(lwd=2, color='yellow') + xlim(12,90) + xlab('Age') + ylab('Mean Friend Count') + ggtitle('Mean Friend Count vs Age')
 ```
 
 ***
