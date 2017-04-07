@@ -1,0 +1,136 @@
+---
+title: "GapMinder Country Visualizations"
+author: "Will Koehrsen"
+date: "April 7, 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+# Introduction 
+
+I decided to explore six different measures for countries in 2006.
+The six statistics I choose were: inequality, poverty, billionaires, energy use, literacy, and life expectancy. 
+
+1. Inquality: measured by the GINI index, which describes how much the wealth distribution in a country varies from perfectly equal. A figure of 0 represents total equality, while 100 represents total inequality.
+2. Poverty: measured in the percentage of the total population subsisting on <$2 per day. 
+3. Billionaires: number of billionairies per one million inhabitants
+4. Energy Use Per Person: measured in tonnes of oil equivalent (TOE)
+5. Literacy: measured as percentage of adults (15+) who demonstrate literacy
+6. Life Expectancy: life expectancy in years at birth. 
+
+** All data is sourced from [GapMinder](http://www.gapminder.org/data/) **
+
+## Data Wrangling 
+First, I need to load in the data from separate csv files and combine into a single dataframe. I will use the merge function to merge on country names. To merge multiple data frames at once, I can use the reduce function combined with merge and the list of dataframes to merge. 
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(dplyr)
+knitr::opts_chunk$set(echo = TRUE)
+
+# Read in data from 2006
+inequality <- read.csv('Inequality.csv')
+poverty <- read.csv('Poverty.csv')
+billionaires <- read.csv('Billionaires.csv')
+energy <- read.csv('Energy.csv')
+literacy <- read.csv('Literacy.csv')
+life_expectancy <- read.csv('Life Expectancy.csv')
+
+# Create one data frame with all countries and six variables
+df <- Reduce(function(x,y) merge(x,y, by='Country'), list(inequality, poverty, energy, literacy, life_expectancy, billionaires))
+
+tail(df)
+```
+## Visualization and Correlation Analysis
+
+The data wrangling phase was relatively simple because GapMinder provides the data in a tidy format. I now had all the statistics for 2006 in a single dataframe. I saw that I had a lot of NAs, which might be a problem. The billionaires per million inhabitants had many zeros instead of na. I decided to leave that as is, because it is not missing data. Most countries really do not have any billionaires. I may subset this data when plotting or generating correlation statistics to exclude the countries with 0 billionaires. 
+
+```{r}
+# First I should take a look at the overall summary
+
+summary(df[,2:7])
+```
+
+Maybe I should subset the billionaires. Here is the summary for countries with at least one billionaire.
+
+```{r}
+summary(subset(df, billionaire_pm != 0, billionaire_pm))
+
+# Which country can the maximum be? 
+
+subset(df, df$billionaire_pm==max(df$billionaire_pm))
+
+# Which country has the highest literacy rate?
+subset(df, df$literacy_rate == max(df$literacy_rate, na.rm=TRUE))
+
+# Finally, who has the lowest inequality?
+subset(df, df$inequality == min(df$inequality, na.rm=TRUE))
+```
+```{r,echo=FALSE}
+# Start off with a few simple scatter plots
+ggplot(aes(x=poverty_rate, y= inequality), data=df) + geom_point(color='blue') +
+  labs(x='Poverty Rate (% < $2)', y='Inequality', title='Inquality vs. Poverty Rate')
+
+```
+
+``` {r, echo=FALSE}
+ggplot(aes(x=billionaire_pm, y=inequality), data= subset(df, billionaire_pm != 0)) + geom_point(color='green') + 
+  coord_cartesian(xlim=c(0,0.3)) + xlab('Billionaires per Million') + ylab('Inequality') + ggtitle('Inequality vs. Billionaires')
+```
+
+```{r, echo=FALSE}
+ggplot(aes(x=literacy_rate, y=Life.expectancy), data= df) + geom_point(color='green') + 
+  coord_cartesian(ylim=c(50,80)) + xlab('Literacy') + ylab('Life Expectancy') + ggtitle('Life Expectancy vs. Literacy') + geom_smooth(method='lm')
+
+```
+These are fairly intriguing. It would be better if data existed for every country, but that will not always be the case. 
+
+```{r, echo=FALSE}
+ggplot(aes(x=energy, y=billionaire_pm), data= subset(df, billionaire_pm != 0)) + geom_point(color='green') + 
+  coord_cartesian(ylim=c(0,0.3)) + ylab('Billionaires per Million') + xlab('Energy Use per Person in TOE') + ggtitle('Billionaires per Million vs Energy Use')
+```
+
+```{r, echo=FALSE}
+ggplot(aes(x=literacy_rate, y=poverty_rate), data=df) + geom_point(color='red', lwd = 4) + 
+  coord_cartesian(xlim=c(40,100)) + labs(x='Literacy Rate', y='Poverty Rate' ,  title= ' Poverty vs Literacy') + 
+  geom_smooth(method='lm')
+```
+
+That is definitely what I expected. As a country increases its literacy rate, that is a good indicator of the wealth of a country, and hence the poverty rate will decrease. Or maybe the poverty rate decreasing drives up the literacy rate. At this point, it is clear this is a correlation, but the causation direction cannot be determined without looking at the changes over time. 
+
+```{r, echo=FALSE}
+library(gridExtra)
+p1 <- qplot(x = poverty_rate, data=df, binwidth =5 ,fill=I('red'), color=I('black'), main='Poverty Rate') + scale_x_continuous(breaks=seq(0,100,10)) + xlab('Poverty Rate') + ylab('Count') 
+
+p2 <- qplot(x = literacy_rate, data=df, binwidth =5 ,fill=I('green'), color=I('black'), main='Literacy Rate') + scale_x_continuous(breaks=seq(0,100,10)) + xlab('Literacy Rate') + ylab('Count') 
+
+grid.arrange(p1, p2, ncol=2)
+```
+
+Finally, I want to see the correlations between each row. I do not know exactly what to expect, so I will calculate the correlation between each pair of rows to see the highest and then I can graph those in a scatterplot to check the statistics. 
+
+```{r echo=FALSE}
+library(Hmisc)
+ccs <- as.matrix(df[2:7])
+rcorr(ccs, type='pearson')
+```
+It appears as those life expectancty and literacy rate are the most highly correlated country statistics. We should take a look at that plot to confirm. 
+
+
+```{r, echo = TRUE}
+ggplot(aes(x=literacy_rate, y=Life.expectancy), data=df) + geom_point(color='purple') + coord_cartesian(ylim=c(50,80)) + 
+  geom_smooth(method='lm') + labs(title='Life Expectancy vs Literacy Rate')
+
+```
+
+Looking at the correlations again, the most negative correlation is between poverty and life expectancy. One more plot to make sure that can be confirmed visually (a plot is worth a thousand statistics) 
+
+```{r, echo=FALSE}
+
+ggplot(aes(x= poverty_rate, y=Life.expectancy), data=df) + geom_point(color='red4') + coord_cartesian(ylim=c(50,80)) +
+  geom_smooth(method='lm', color='lightgoldenrod4') + 
+  labs(title='Life Expectancy vs Poverty Rate')
+
+```
+
+To conclude, the most highly correlated country statistics for 2006 were life expectancy and literacy rate. The most negatively correlated statistics for countries in 2006 were life expectancy and poverty rate. Inquality, which was what most started my investigation, was most negatively correlated with energy per person. I also discovered that Monaco is where all the rich billionaires like to live, with an astounding 30 billionaires per one million residents. Moreover, it appears that Tonga has the highest literacy rate and the Slovak Republic has the lowest inequality among the countries with data on record.
