@@ -116,7 +116,7 @@ Create your plot!
 
 ```{r Conditional Means Plot}
 
-ggplot(aes(x=age, y=fc_mean), data=pf.fc_byage) + geom_line(lwd=2, color='yellow') + xlim(12,90) + xlab('Age') + ylab('Mean Friend Count') + ggtitle('Mean Friend Count vs Age')
+ggplot(aes(x=age, y=fc_mean), data=pf.fc_byage) + geom_line(lwd=2, color='blue') + xlim(12,90) + xlab('Age') + ylab('Mean Friend Count') + ggtitle('Mean Friend Count vs Age')
 ```
 
 ***
@@ -125,7 +125,11 @@ ggplot(aes(x=age, y=fc_mean), data=pf.fc_byage) + geom_line(lwd=2, color='yellow
 Notes:
 
 ```{r Overlaying Summaries with Raw Data}
-
+ggplot(aes(x=age, y=friend_count), data=pf) + geom_jitter(alpha=1/20, color='orange') + 
+  geom_line(stat='summary', fun.y=mean, lwd=2, col='red') + 
+  geom_line(stat='summary', fun.y=quantile, fun.args = list(probs=0.1), linetype = 2) + 
+  geom_line(stat='summary', fun.y=quantile, fun.args=list(probs=0.9), linetype=4) + 
+  coord_cartesian(ylim=c(0,1500), xlim=c(12,90))
 ```
 
 #### What are some of your observations of the plot?
@@ -144,6 +148,10 @@ Notes:
 Notes:
 
 ```{r Correlation}
+?cor.test
+cor.test(x=pf$age, y=pf$friend_count, method="pearson")
+with(pf, cor.test(x=age, y=friend_count, method="pearson"))
+with(subset(pf, age<70), cor.test(x=age, y=friend_count, method="pearson"))
 
 ```
 
@@ -158,7 +166,7 @@ Response:
 Notes:
 
 ```{r Correlation on Subsets}
-with(                 , cor.test(age, friend_count))
+with(            subset(pf, age<=70)     , cor.test(age, friend_count))
 ```
 
 ***
@@ -172,6 +180,14 @@ Notes:
 Notes:
 
 ```{r}
+ggplot(aes(www_likes_received, likes_received), data=pf) + geom_point() + 
+  coord_cartesian(xlim=c(0,10000), ylim=c(0,10000)) + 
+  geom_smooth(method="lm")
+
+with(pf, cor.test(www_likes_received, likes_received, method="pearson"))
+
+with(pf, lm(www_likes_received ~ likes_received))
+
 
 ```
 
@@ -181,6 +197,14 @@ Notes:
 Notes:
 
 ```{r Strong Correlations}
+install.packages('alr3', dependencies=TRUE)
+library(alr3)
+data(Mitchell)
+?Mitchell
+soildf = Mitchell
+ggplot(aes(x=Month, y=Temp), data = soildf) + geom_point()
+with(soildf, cor.test(Month, Temp, method = "pearson"))
+ggplot(aes(x=Month, y=Temp), data= (subset(soildf , Month<12))) + geom_point()
 
 ```
 
