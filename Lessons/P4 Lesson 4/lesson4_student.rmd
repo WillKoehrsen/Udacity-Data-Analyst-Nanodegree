@@ -1,0 +1,300 @@
+Lesson 4
+========================================================
+
+***
+getwd()
+### Scatterplots and Perceived Audience Size
+Notes:
+```{r}
+getwd()
+list.files()
+
+pf = read.csv('pseudo_facebook.tsv', sep='\t')
+library(ggplot2)
+qplot(x = friend_count, y = friendships_initiated, data=pf)
+qplot(x = age, y = friend_count, data=pf)
+```
+
+***
+
+### Scatterplots
+Notes:
+
+```{r Scatterplots}
+ggplot(aes(x=tenure/365, y=likes), data=pf) + geom_point() + xlim(1,3) + xlab('Years on Network')
+```
+
+***
+
+#### What are some things that you notice right away?
+Response:
+
+***
+
+### ggplot Syntax
+Notes:
+
+```{r ggplot Syntax}
+ggplot(aes(x=age, y=friend_count), data=pf) + geom_point(alpha=1/20) + xlab('Age of User')+
+  xlim(12, 90)
+
+ggplot(aes(x=tenure/365, y = likes_received), data=pf) + geom_jitter(alpha=1/5) + xlab('Number of Years on Network') + ylab('Likes Received') 
+
+```
+
+***
+
+### Overplotting
+Notes:
+
+```{r Overplotting}
+ggplot(aes(x=age, y=friend_count), data=pf) + geom_jitter(alpha=1/20) + xlim(12,90)
+```
+
+#### What do you notice in the plot?
+Response:
+
+***
+
+### Coord_trans()
+Notes:
+
+```{r Coord_trans()}
+?coord_trans
+ggplot(pf, aes(x=age, y=friend_count)) + geom_point(alpha=1/20) + coord_trans( y="sqrt") +
+  xlim(12,90)
+
+ggplot(pf, aes(x=age, y=friend_count)) + geom_point(alpha=1/20, position = position_jitter(h= 0)) + coord_trans( y="sqrt") +  xlim(12,90)
+```
+
+#### Look up the documentation for coord_trans() and add a layer to the plot that transforms friend_count using the square root function. Create your plot!
+
+```{r}
+
+```
+
+#### What do you notice?
+
+***
+
+### Alpha and Jitter
+Notes:
+
+```{r Alpha and Jitter}
+ggplot(aes(x=age, y=friendships_initiated), data=pf) + geom_jitter(alpha=1/10, position=position_jitter(h=0)) + coord_trans(y='sqrt') + 
+  xlim(12,90) 
+
+
+```
+
+***
+
+### Overplotting and Domain Knowledge
+Notes:
+
+***
+
+### Conditional Means
+Notes:
+
+```{r Conditional Means}
+install.packages('dplyr', dependencies = TRUE)
+library(dplyr)
+
+age_groups <- group_by(pf, age)
+pf.fc_byage <- summarize(age_groups,
+                         fc_mean = mean(friend_count),
+                         fc_median = median(as.numeric(friend_count)),
+                         n = n())
+
+pf.fc_byage <- arrange(pf.fc_byage, age)
+head(pf.fc_byage, 5)
+
+```
+
+Create your plot!
+
+```{r Conditional Means Plot}
+
+ggplot(aes(x=age, y=fc_mean), data=pf.fc_byage) + geom_line(lwd=2, color='yellow') + xlim(12,90) + xlab('Age') + ylab('Mean Friend Count') + ggtitle('Mean Friend Count vs Age')
+```
+
+***
+
+### Overlaying Summaries with Raw Data
+Notes:
+
+```{r Overlaying Summaries with Raw Data}
+
+```
+
+#### What are some of your observations of the plot?
+Response:
+
+***
+
+### Moira: Histogram Summary and Scatterplot
+See the Instructor Notes of this video to download Moira's paper on perceived audience size and to see the final plot.
+
+Notes:
+
+***
+
+### Correlation
+Notes:
+
+```{r Correlation}
+
+```
+
+Look up the documentation for the cor.test function.
+
+What's the correlation between age and friend count? Round to three decimal places.
+Response:
+
+***
+
+### Correlation on Subsets
+Notes:
+
+```{r Correlation on Subsets}
+with(                 , cor.test(age, friend_count))
+```
+
+***
+
+### Correlation Methods
+Notes:
+
+***
+
+## Create Scatterplots
+Notes:
+
+```{r}
+
+```
+
+***
+
+### Strong Correlations
+Notes:
+
+```{r Strong Correlations}
+
+```
+
+What's the correlation betwen the two variables? Include the top 5% of values for the variable in the calculation and round to 3 decimal places.
+
+```{r Correlation Calcuation}
+
+```
+
+Response:
+
+***
+
+### Moira on Correlation
+Notes:
+
+***
+
+### More Caution with Correlation
+Notes:
+
+```{r More Caution With Correlation}
+install.packages('alr3')
+library(alr3)
+```
+
+Create your plot!
+
+```{r Temp vs Month}
+
+```
+
+***
+
+### Noisy Scatterplots
+a. Take a guess for the correlation coefficient for the scatterplot.
+
+b. What is the actual correlation of the two variables?
+(Round to the thousandths place)
+
+```{r Noisy Scatterplots}
+
+```
+
+***
+
+### Making Sense of Data
+Notes:
+
+```{r Making Sense of Data}
+
+```
+
+***
+
+### A New Perspective
+
+What do you notice?
+Response:
+
+Watch the solution video and check out the Instructor Notes!
+Notes:
+
+***
+
+### Understanding Noise: Age to Age Months
+Notes:
+
+```{r Understanding Noise: Age to Age Months}
+
+```
+
+***
+
+### Age with Months Means
+
+```{r Age with Months Means}
+
+```
+
+Programming Assignment
+```{r Programming Assignment}
+
+```
+
+***
+
+### Noise in Conditional Means
+
+```{r Noise in Conditional Means}
+
+```
+
+***
+
+### Smoothing Conditional Means
+Notes:
+
+```{r Smoothing Conditional Means}
+
+```
+
+***
+
+### Which Plot to Choose?
+Notes:
+
+***
+
+### Analyzing Two Variables
+Reflection:
+
+***
+
+Click **KnitHTML** to see all of your hard work and to have an html
+page of this lesson, your answers, and your notes!
+
