@@ -23,7 +23,116 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(dplyr)
 
+# Center title on all plots
+theme_update(plot.title= element_text(hjust=0.5))
 df <- read.csv('happiness2016.csv')
-ggplot(aes(x = Freedom, y = Happiness.Score) , data = df) + geom_point(aes(size=Generosity), color='navy')
+ggplot(aes(x = Freedom, y = Happiness.Score) , data = df) + geom_point(aes(size=Generosity), color='navy') + 
+  labs(title='Happiness Score vs Freedom')
 with(df, cor.test(Freedom, Happiness.Score))
+
 ```
+I wanted to see which regions had the highest happiness scores on average. Here is a simple bar plot. 
+
+```{r}
+
+ggplot(aes(x = Region, y= Happiness.Score),  data = df) + geom_bar(stat= 'summary', fun.y='mean', color='black', fill='orange') + 
+  theme(axis.text.x = element_text(angle = 60, hjust=1)) + 
+  labs(x = 'Region', y = 'Mean Happiness') + scale_y_continuous(breaks=seq(0,8,1)) + labs(title='Mean Happiness Score by Region')
+
+
+regions <- group_by(df, Region)
+summarize(regions, mean(Happiness.Score))
+
+```
+It appears as those Australia and New Zealand narrowly edges out North America for greatest happiness. The average among all of the regions is fairly high however. I will now graph the variation from the average happiness. Expressed as (mean happiness score of region - mean happiness score overall) / (mean happiness score overall)
+
+```{r}
+regions <- group_by(df, Region)
+regions <- summarize(regions,
+                     mean_happiness = mean(Happiness.Score),
+                     median_happiness = median(Happiness.Score),
+                     n = n())
+
+regions <- transform(regions, relative_happiness = 100 * (mean_happiness - mean(mean_happiness)) / mean(mean_happiness))
+
+#Another bar plot with the relative happiness
+ggplot(aes(x = Region, y = relative_happiness), data = regions) + geom_bar(stat='identity', color= 'black', fill = 'red')  +
+  theme(axis.text.x = element_text(angle = 60, hjust=1)) + labs(y='Happiness Relative to World (%)', x = 'Region', title='Happiness of Region Compared to World') 
+
+```
+Those are intriguing results. However, one of the limitations of this data is that the sample size in region is relatively small.
+
+```{r}
+regions[, c("Region", "n")]
+
+```
+It is difficult to draw conclusions based on those small sample sizes. Let's return to the full data to examine a few more correlations. 
+
+```{r}
+# Print out correlations for every pair of variables
+
+library(Hmisc)
+ccs <- as.matrix(df[, c(4, 7:13)])
+rcorr(ccs, type='pearson')
+```
+Well that is certainly interesting. Happiness is most strongly correlated with GDP per capita and least strongly correlated with generosity. It is also strongly correlated with life expectancy and family. 
+I wonder what the top ten happiest countries and the bottom 10 sadest countries are. 
+
+```{r}
+
+df <- arrange(df, Happiness.Score)
+head(df, 10)
+tail(df, 10)
+
+```
+
+It appears that the Scandanavian countries tend to be the happiest in the world while the sub-saharan African countries have the lowest happiness. I would like to see how this changes over the years, but the only other data set was from 2015 so there would likely not be noticeable trends in the data. I will finish up by graphing a few of the strongest correlations. 
+
+```{r}
+
+# Happiness vs life expectancy
+ggplot(aes(x = Health..Life.Expectancy., y = Happiness.Score), data = df) + geom_point(color='green') + 
+  labs(x = 'Normalized Life Expectancy', y= 'Happiness Score', title='Happiness vs Life Expectancy') + geom_smooth(method='lm', color= 'red', linetype=2)
+
+
+```
+A pretty strong correlation there. (The second highest). Now for the highest correlation. I will size the bubble by family
+```{r}
+
+ggplot(aes(x = Economy..GDP.per.Capita., y = Happiness.Score), data = df) + geom_point(aes(size = Family), color = 'brown') + 
+  labs(x = 'GDP per Capita', y= 'Happiness Score', title='Happiness vs GDP per Capita') + geom_smooth(method = 'lm', color='black', linetype = 2)
+
+```
+
+I want to do one final plot unrelated to Happiness Score. I'll look at the strong relationship between GDP and life expectancy. The points can be colored by region. 
+
+```{r}
+
+ggplot(aes(x = Economy..GDP.per.Capita. , y = Health..Life.Expectancy.), data =df) + geom_point(aes(color=Region)) + 
+  labs(x='GDP per Capita', y= 'Normalized Life Expectancy', title = 'Life Expectancy vs GDP by Region')
+
+
+```
+
+That is fairly revealing. I think I want to construct another plot, this time faceted by each region. I think I will go with GDP vs Freedom and also Dystopia vs Trust in Government
+
+```{r}
+
+ggplot(aes(x = Freedom, y = Economy..GDP.per.Capita.), data = df) + facet_wrap(~Region) + geom_point(color='blue') + 
+  labs(x='Freedom', y='GDP Per Capita', title = 'GDP per Capita vs Freedom') + geom_smooth(method='lm', color= 'red', linetype=2)
+with(df, cor.test(Freedom,Economy..GDP.per.Capita. ))
+
+
+
+```
+
+```{r}
+ggplot(aes(x = Trust..Government.Corruption., y = Dystopia.Residual), data = df) + facet_wrap(~Region) +  geom_point(color= 'red') + 
+  labs(x = 'Trust in Government' , y = 'Dystopia', title= 'Dystopia vs Trust in Government') + geom_smooth(method='lm', color='black', linetype = 2)
+```
+
+It appears that there is no relationship between trust in government and dystopia, as indicated by the correlation coefficient. Moreover, there is a slight positive correlation between freedom and GDP per capita. 
+
+# Conclusions
+
+The most strongly correlated factor with happiness is the economy as measured in GDP followed by health as measured in life expectancy. The most correlated variables at all are economy and life expectancy which is not unexpected. I would think that a more robust economy would lead to better health incomes and unsurprisingly, happier citizens. What was surprising, is that happiness is not very strongly related to generosity which is what I would have expected. Again, I need to do some more research into the metrics used in this data as I do not understand all of the values and what is represented. The happiest regions are Australia and New Zealand and North America while the most unhappy regions are sub-saharan Africa and southern asia. The happiest countries in the world are Denmark, Switzerland, Iceland, and Norway. I am not surprised to see the Scandanavian countries, with their impressive public support systems, top the list. There are still many relationships and connections that can be drawn from this data. Perhaps it could be useful in terms of directing aid money to where it will be most effective. Knowing the underlying relationships between factors could inform better decisions when it comes to helping others. At the end of the day, data analysis is about finding the relationships and then using them to create better systems. Here is an additional research for those who are still curious (World Happiness Report)[http://worldhappiness.report/ed/2017/]
