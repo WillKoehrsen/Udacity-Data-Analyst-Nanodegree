@@ -1,0 +1,46 @@
+---
+title: "Exploratory Data Analysis"
+author: "Will Koehrsen"
+date: "April 9, 2017"
+output: html_document
+---
+# Introduction to Dataset
+
+I wanted to choose a dataset that was both relatable and could potentially be used to make smarter decisions. Therefore, I decided to work with [medical appointment no shows data available on Kaggle](https://www.kaggle.com/joniarroba/noshowappointments). This dataset is drawn from 300,000 patient visits in Brazil. I wanted to see what factors of an appointment were most strongly correlated with whether or not a patient would show up to their appointment. 
+There were a total of 14 variables I included from the original data. The variables are as follows
+
+1. __Age__: integer age of patient
+2. __Gender__: M or F
+3. __AppointmentReservationDate__: date and time appointment was made
+4. __AppointmentDate__: date of appointment without time
+5. __DayOfTheWeek__: day of the week of appointment
+6. __Status__: Show-up or No-Show
+7. __Diabetes__: 0 or 1 for condition
+8. __Alcoholism__: 0 or 1 for condition
+9. __Hypertension__: 0 or 1 for condition
+10. __Smoker__: 0 or 1 for smoker / non-smoker
+11. __Scholarship__: 0 or 1 indicating whether the family of the patient takes part in the [Bolsa Familia Program](http://www.worldbank.org/en/news/opinion/2013/11/04/bolsa-familia-Brazil-quiet-revolution), an intiative that provides families with small cash transfers in exchange for keeping children in school and completing health care visits. 
+12. __Tuberculosis__: 1 or 0 for condition
+13. __SMSReminder__: 0 ,1 ,2 for number of text message reminders
+14. __WaitingTime__: integer number of days between when the appointment was made, and when the appointment takes place. 
+
+```{r setup, include=FALSE}
+
+# Set up R markdown
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load in required packages
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(Hmisc)
+library(GGally)
+
+no_shows <- read.csv('noshows.csv')
+summary(no_shows)
+str(no_shows)
+
+?rmd
+
+```
+
