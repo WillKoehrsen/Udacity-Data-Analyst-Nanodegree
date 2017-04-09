@@ -36,11 +36,30 @@ library(reshape2)
 library(Hmisc)
 library(GGally)
 
+# Read in the data
 no_shows <- read.csv('noshows.csv')
-summary(no_shows)
-str(no_shows)
+
 
 ?rmd
 
 ```
+Let's take a look at the structure of the data as well as a summary of each variable. 
+```{r}
+summary(no_shows)
+str(no_shows)
+```
+From the structure of the dataframe, I can see there is a little bit of cleaning that needs to be done. First, I want to change all the categories that are classified as 0 or 1 into factors. This includes the various conditions. Then, I will convert the registration date and the appointment date to date objects. Then, I will add a column of factors for the status where 1 represents a no-show and 0 represents that the patient showed up to the appointment.
+I decided not to maintain the time associated the registration data for the apointment. I converted both the appointment registration date and appointment date to simple date objects so I could investigate seasonal and time patterns in the data. 
+```{r}
+factors = c("Diabetes", "Alcoholism", "Hypertension", "Smoker", "Scholarship", "Tuberculosis")
+no_shows[factors] <- lapply(no_shows[factors], factor, levels=c(0,1))
+no_shows['Status'] <- lapply(no_shows['Status'], factor, levels=c("Show-Up", "No-Show"), labels = c(0, 1))
+no_shows$AppointmentDate <-gsub(pattern = "[A-Z]", replacement = " ", x = no_shows$AppointmentDate)
+no_shows$AppointmentRegistrationDate <- gsub(pattern = "[A-Z]", replacement = " ", x = no_shows$AppointmentRegistrationDate)
+no_shows$AppointmentDate <- as.Date(no_shows$AppointmentDate)
+no_shows$AppointmentRegistrationDate <- as.Date(no_shows$AppointmentRegistrationDate)
+str(no_shows)
+
+```
+Based on the structure of the dataframe, it looks as if I have all the information I will need. My procedure will mainly consisting of grouping by one variablem, and then finding the average appointment attendance based on that variable. 
 
