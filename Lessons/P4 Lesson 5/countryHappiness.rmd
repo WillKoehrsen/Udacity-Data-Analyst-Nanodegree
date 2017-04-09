@@ -1,0 +1,29 @@
+---
+title: "Country Happiness Exploration"
+author: "Will Koehrsen"
+date: "April 8, 2017"
+output: html_document
+---
+# Introduction
+
+I decided to explore country happiness rankings from 2016. This dataset is able for download from [Kaggle](https://www.kaggle.com/unsdsn/world-happiness). There are plenty of other interesting datasets available 
+from Kaggle and I would highly recommended checking them out if one is in search of data to visualize.
+
+## Variables in Data
+Country, Region,	Happiness Rank,	Happiness Score,	Lower Confidence Interval,	Upper Confidence Interval,	
+Economy (GDP per Capita),	Family,	Health (Life Expectancy),	Freedom,	Trust (Government Corruption),	Generosity,	Dystopia Residual
+
+I wanted to explore what makes a country happy. I already had some hypotheses, and I thought this would be a 
+great way to test them. I started off with a simple scatterplot of Happiness Score vs Freedom with the points
+sized by generosity. I then found the correesponding correlation coefficient between happiness score and freedom.
+The results show a slight positive correlation but does not imply freedom causes happiness. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+
+df <- read.csv('happiness2016.csv')
+ggplot(aes(x = Freedom, y = Happiness.Score) , data = df) + geom_point(aes(size=Generosity), color='navy')
+with(df, cor.test(Freedom, Happiness.Score))
+```

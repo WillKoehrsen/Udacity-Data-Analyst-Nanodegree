@@ -277,7 +277,25 @@ Notes:
 
 ### Many Variables
 Notes:
+```{r}
 
+install.packages('GGally')
+library(GGally)
+?nasa
+data(nasa)
+df <- nasa
+theme_set(theme_minimal)
+
+# Graphing all correlations at once
+set.seed(1836)
+pf_subset <- pf[, 2:10]
+pf_subset <- pf_subset[sample.int(nrow(pf_subset), 1000),]
+ggpairs(pf_subset, columns = 1:8)
+str(pf_subset)
+?ggpairs
+?sample.int
+
+```
 ***
 
 ### Scatterplot Matrix
@@ -294,6 +312,7 @@ Notes:
 Notes:
 
 ```{r}
+library(reshape2)
 nci <- read.table("nci.tsv")
 colnames(nci) <- c(1:64)
 ```
@@ -303,10 +322,11 @@ nci.long.samp <- melt(as.matrix(nci[1:200,]))
 names(nci.long.samp) <- c("gene", "case", "value")
 head(nci.long.samp)
 
+library(ggplot2)
 ggplot(aes(y = gene, x = case, fill = value),
   data = nci.long.samp) +
   geom_tile() +
-  scale_fill_gradientn(colours = colorRampPalette(c("blue", "red"))(100))
+  scale_fill_gradientn(name = 'Value', colours = colorRampPalette(c("green", "red"))(100))
 ```
 
 

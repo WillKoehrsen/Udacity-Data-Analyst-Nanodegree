@@ -1,0 +1,60 @@
+---
+title: "lesson5 PS"
+author: "Will Koehrsen"
+date: "April 8, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+
+
+data(diamonds)
+df <- diamonds
+
+
+# Facet wrap creates a new plot for each value in columm
+ggplot(aes(x = price),  data = df) + geom_histogram(aes(fill= cut), bins = 20, color='black') + facet_wrap(~clarity) + 
+  scale_fill_brewer(type='qual')
+
+ggplot(aes(x = price),  data = df) + geom_histogram(aes(fill= cut), bins = 20, color='black') + facet_wrap(~color)  + 
+  scale_fill_brewer(type='qual')
+
+?diamonds
+# Table: width of top of diamond relative to widest point
+
+ggplot(aes(x = table, y=price) , data=df) + geom_point(aes(color=cut)) + coord_cartesian(xlim=c(50,70)) + 
+  scale_x_continuous(breaks=seq(50,70,2))
+
+df <- transform(df, volume = x * y * z)
+
+ggplot(aes(x = volume, y = price) ,data = df) + geom_point(aes(color=clarity)) + coord_cartesian(xlim=c(0,500)) +
+  scale_y_log10()
+
+
+pf <-read.csv('pseudo_facebook.tsv', sep='\t')
+pf <- transform(pf, prop_initiated = friendships_initiated/friend_count)
+
+pf$year_joined <- floor(2014 - (pf$tenure / 365))
+
+pf$year_joined.bucket <- cut(pf$year_joined, c(2004,2009,2011,2012,2014))
+
+ggplot(aes(x=30*round(tenure/30), y=prop_initiated), binwidth=100,  data = pf) + geom_line(aes(color=year_joined.bucket), stat='summary' , fun.y = median)
+
+summary(subset(pf, year_joined.bucket == '(2012,2014]', prop_initiated))
+str(pf)
+levels(pf$year_joined.bucket)
+
+
+ggplot(aes(x = cut, y = price/carat), data = df) + geom_point(aes(color = color)) +  facet_wrap(~clarity) + 
+  scale_fill_brewer(type = 'div') + labs(x= 'Cut', y = 'Price/Carat', title = 'Price/Carat vs Cut Grouped by Clarity and Colored by Diamond Color') + theme(plot.title = element_text(hjust=0.5))
+
+
+
+```
