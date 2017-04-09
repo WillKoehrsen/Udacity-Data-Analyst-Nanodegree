@@ -179,7 +179,7 @@ Response:
 Alter the code below.
 ```{r Price vs. Carat and Cut}
 ggplot(aes(x = carat, y = price, color = clarity), data = diamonds) + 
-  geom_point(aes(color = cut), alpha = 0.5, size = 1, position = 'jitter') +
+  geom_point(aes(color = cut), alpha = 0.5, size = 1.5, position = 'jitter') +
   scale_color_brewer(type = 'div',
                      guide = guide_legend(title = 'Cut', reverse = T,
                                           override.aes = list(alpha = 1, size = 2))) +  
@@ -201,16 +201,18 @@ Response:
 
 Alter the code below.
 ```{r Price vs. Carat and Color}
-ggplot(aes(x = carat, y = price, color = cut), data = diamonds) + 
-  geom_point(alpha = 0.5, size = 1, position = 'jitter') +
-  scale_color_brewer(type = 'div',
-                     guide = guide_legend(title = Cut, reverse = T,
+ggplot(aes(x = carat, y = price, color = color), data = diamonds) + 
+  geom_point( alpha = 0.5, size = 1, position = 'jitter') +
+  scale_color_brewer(type = 'div', palette = 8, 
+                     guide = guide_legend(title = 'Color',
                                           override.aes = list(alpha = 1, size = 2))) +  
   scale_x_continuous(trans = cuberoot_trans(), limits = c(0.2, 3),
                      breaks = c(0.2, 0.5, 1, 2, 3)) + 
   scale_y_continuous(trans = log10_trans(), limits = c(350, 15000),
                      breaks = c(350, 1000, 5000, 10000, 15000)) +
-  ggtitle('Price (log10) by Cube-Root of Carat and Cut')
+  ggtitle('Price (log10) by Cube-Root of Carat and Color')
+
+
 ```
 
 ***
@@ -231,12 +233,18 @@ Response:
 Notes:
 
 ```{r Building the Linear Model}
-m1 <- lm(I(log(price)) ~ I(carat^(1/3)), data = diamonds)
-m2 <- update(m1, ~ . + carat)
-m3 <- update(m2, ~ . + cut)
-m4 <- update(m3, ~ . + color)
-m5 <- update(m4, ~ . + clarity)
-mtable(m1, m2, m3, m4, m5)
+m1 <- lm(I(log10(price)) ~ I(carat^(1/3)), data = diamonds)
+m2 <- update(m1, ~ .+ clarity)
+m3 <- update(m2, ~ .+ color)
+m4 <- update(m3, ~ .+ cut)
+m5 <- update(m4, ~ .+ carat) 
+
+mtable(m1, m2, m3, m4, m5, sdigits = 3)
+
+?mtable
+?lm
+
+m5
 ```
 
 Notice how adding cut to our model does not help explain much of the variance
@@ -266,6 +274,21 @@ library('RCurl')
 
 diamondsurl = getBinaryURL("https://raw.github.com/solomonm/diamonds-data/master/BigDiamonds.Rda")
 load(rawConnection(diamondsurl))
+
+big_df <- read.csv('diamondsbig.csv')
+str(big_df)
+summary(big_df, sdigits = 4)
+
+interm_df <- subset(big_df, price < 10000 & cert == 'GIA')
+m1 <- lm(I(log(price)) ~ I(carat^(1/3)), data = interm_df)
+m2 <- update(m1, ~ .+ clarity)
+m3 <- update(m2, ~ .+ cut)
+m4 <- update(m3, ~ .+ color)
+m5 <- update(m4, ~ .+ carat)
+
+mtable(m1,m2,m3,m4,m5, sdigits = 4)
+
+
 ```
 
 The code used to obtain the data is available here:
@@ -288,10 +311,15 @@ Round 1.00 Very Good I VS1 $5,601
 
 ```{r}
 #Be sure you’ve loaded the library memisc and have m5 saved as an object in your workspace.
+library(memisc)
+
 thisDiamond = data.frame(carat = 1.00, cut = "V.Good",
                          color = "I", clarity="VS1")
 modelEstimate = predict(m5, newdata = thisDiamond,
                         interval="prediction", level = .95)
+
+exp(modelEstimate)
+?log
 ```
 
 Evaluate how well the model predicts the BlueNile diamond's price. Think about the fitted point estimate as well as the 95% CI.
