@@ -1,0 +1,588 @@
+---
+title: "Exploratory Data Analysis"
+author: "Will Koehrsen"
+date: "April 9, 2017"
+output: html_document
+---
+# Introduction to Dataset
+
+I wanted to choose a dataset that was both relatable and could potentially be used to make smarter decisions. Therefore, I decided to work with [medical appointment no shows data available on Kaggle](https://www.kaggle.com/joniarroba/noshowappointments). This dataset is drawn from 300,000 patient visits in Brazil. I wanted to see what factors of an appointment were most strongly correlated with whether or not a patient would show up to their appointment. 
+There were a total of 14 variables I included from the original data. The variables are as follows
+
+1. __Age__: integer age of patient
+2. __Gender__: M or F
+3. __AppointmentReservationDate__: date and time appointment was made
+4. __AppointmentDate__: date of appointment without time
+5. __DayOfTheWeek__: day of the week of appointment
+6. __Status__: Show-up or No-Show
+7. __Diabetes__: 0 or 1 for condition
+8. __Alcoholism__: 0 or 1 for condition
+9. __Hypertension__: 0 or 1 for condition
+10. __Smoker__: 0 or 1 for smoker / non-smoker
+11. __Scholarship__: 0 or 1 indicating whether the family of the patient takes part in the [Bolsa Familia Program](http://www.worldbank.org/en/news/opinion/2013/11/04/bolsa-familia-Brazil-quiet-revolution), an intiative that provides families with small cash transfers in exchange for keeping children in school and completing health care visits. 
+12. __Tuberculosis__: 1 or 0 for condition
+13. __SMSReminder__: 0 ,1 ,2 for number of text message reminders
+14. __WaitingTime__: integer number of days between when the appointment was made, and when the appointment takes place. 
+
+```{r setup, include=FALSE}
+
+# Set up R markdown
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load in required packages
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(reshape2)
+library(Hmisc)
+library(GGally)
+
+# Read in the data
+no_shows <- read.csv('noshows.csv')
+
+
+```
+
+## Data Cleaning and Preliminary Investigation
+Let's take a look at the structure of the dataframe to see what changes might need to be made. 
+```{r}
+str(no_shows)
+```
+From the structure of the dataframe, I can see there is a little bit of cleaning that needs to be done. First I want to change the status into an integer 0 or 1. A value of 1 will indicate that the patient did not show up as I am concerned with the varaibles that are most strongly correlated with a missed appointment. Then, I will convert the registration date and the appointment date to date objects.I decided not to maintain the time (hours:minutes:seconds) associated with the registration date for the apointment although it was available (time of day was not available for the appointment date). I converted both the appointment registration date and appointment date to date objects so I could investigate seasonal and time patterns in the data. 
+```{r}
+
+# Create numeric factors out of the two levels in status field
+no_shows['Status'] <- lapply(no_shows['Status'], factor,  levels=c("Show-Up", "No-Show"), labels = c(0, 1))
+# Change the factors in the the status column into 1: patient missed appointment and 0: patient attended appointment
+no_shows$Status <- as.integer(as.character(no_shows$Status))
+
+# Remove characters from dates and convert into date objects
+no_shows$AppointmentDate <-gsub(pattern = "[A-Z]", replacement = " ", x = no_shows$AppointmentDate)
+no_shows$AppointmentRegistrationDate <- gsub(pattern = "[A-Z]", replacement = " ", x = no_shows$AppointmentRegistrationDate)
+no_shows$AppointmentDate <- as.Date(no_shows$AppointmentDate)
+no_shows$AppointmentRegistrationDate <- as.Date(no_shows$AppointmentRegistrationDate)
+str(no_shows)
+
+```
+Based on the update structure of the dataframe, it looks like I am on the right track.  I have a couple more modifications to make to the dataframe. I will create month, year, and day fields for the appointment and also rename the colmuns to a more consistent and readable format. 
+
+```{r}
+
+# Extract month, year, and day from appointment date and create new columns
+no_shows <-transform(no_shows, month = format(AppointmentDate, "%m"))
+no_shows <- transform(no_shows, year = format(AppointmentDate, "%Y"))
+no_shows <- transform(no_shows, day = format(AppointmentDate, "%d"))
+
+no_shows$year <- as.integer(as.character(no_shows$year))
+no_shows$month <- as.integer(as.character(no_shows$month))
+no_shows$day <- as.integer(as.character(no_shows$day))
+
+# Clarify and simply column names
+no_shows <- plyr::rename(no_shows, c("Age" = "age",
+                               "Gender" = "gender",
+                               "AppointmentRegistrationDate" = "appt_reg_date",
+                               "AppointmentDate" = "appt_date",
+                               "DayOfTheWeek" = "weekday",
+                               "Status" = "status",
+                               "Diabetes" = "diabetes",
+                               "Alcoholism" = "alcoholism",
+                               "Hypertension" = "hypertension",
+                               "Smoker" = "smoker",
+                               "Scholarship" = "welfare",
+                               "Tuberculosis" = "tuberculosis",
+                               "SmsReminder" = "sms_reminder",
+                               "WaitingTime" = "wait",
+                               "month" = "appt_month",
+                               "year" = "appt_year",
+                               "day" = "appt_day"))
+
+# Look at the summary of statistics for the dataframe
+summary(no_shows)
+
+```
+The summary of the no_shows dataframe reveals plenty of intriguing information as well as several errors that need to be corrected. Right away, it is clear that an age of -2 is not correct, and 113 is stretching the boundaries. However, looking at the [oldest people in the world](https://en.wikipedia.org/wiki/List_of_the_verified_oldest_people), it is plausible that 113 could be a correct age. I will filter out any negative ages and create a histogram of ages to see if there remain outliers at the upper end. Moreover, this data shows that __30.24%__ of appointments are missed based on the mean for the status field. The rates for the various conditions can also be seen, and it the most commonly coded reason for an appointment is hypertension at nearly 22%. Also, the weekends appear to be a very unpopular time for doctor's appointments in Brazil, or perhaps the clinics from which this data was drawn are not open on the weekend. Either way, I will need to keep the small sample size of appointments on the weekend in mind when I do any analysis by weekday. 
+
+```{r}
+no_shows <- filter(no_shows, age >= 0)
+# Set all titles in plots to be centered
+theme_update(plot.title=element_text(hjust = 0.5))
+
+qplot(x = age, data = no_shows, color = I('black') , fill = I('blue'), binwidth = 1) + theme(legend.position="None") + 
+  labs(x='Age', y="Number of Patients", title='Age Histogram') + scale_x_continuous(breaks=seq(0,110, 10))
+
+```
+The age histogram goes somewhat against my intutions. I expected that it would be bi-modal, with peaks at the youngest ages and then again at the oldest ages. However, while the largest number of patients do appear to be the youngest, there is only a slight increase into the middle ages, with a second peak around age 55 and then a steep decline into the oldest ages. Based on the visualization, there do not appear to be a large number of outliers in the upper range of the dataset. I was skeptical of the high proportion of visits from those aged 0 and decided to do some research.  Based on the description of the dataset, this is for the public sector and primary care physicians. I could not find statistics from Brazil, but based on [official statistics from the Centers for Disease Control](https://www.cdc.gov/nchs/fastats/physician-visits.htm) in the United States, children under 1 year of age make up 2.6% of all physician visits. 
+```{r}
+nrow(subset(no_shows, age < 1)) / nrow(no_shows) * 100
+```
+A simple calculation shows that 0-year olds make up 3.44% of visits in this dataset. While the frequency distribution may looked skewed, the number of bins (ages) makes it look like 0-year olds dominate the data more than is actually the case. From the research by the CDC and the visualization, I conclude that the age distribution skew is not bad data, and the outliers at the low end are good but extreme data. I will make another histogram, this time of the waiting time (or how long between the date the appointment was made, and the actual date of the appointment) to check for outliers in that field.
+
+```{r}
+qplot(x = wait, data = no_shows, color = I('black'), fill= I('darkorange'), binwidth = 5) + labs(x='Waiting Time in Days', y = 'Number of Patients', title='Waiting Time Histogram') 
+```
+From the summary statistics, the longest waiting time was 398 days, with a median of 8 days, and a mean of 13.84 days. From the histogram and the stats, it is clear that there are a small number of patients who wait a long time for their appointment. I wonder if the 398 days is accidentally a mistake that occured when someone choose the wrong year for their appointment! The graph is certainly long-tailed with a few outliers at the upper end of wait time. 
+
+```{r}
+nrow(subset(no_shows, wait > 365))
+nrow(subset(no_shows, wait > 180))
+
+```
+It appears there is only one patient with a waiting time over one year and just over 100 (out of 300000) with a waiting time of over six months. I will exclude the patient with the waiting time over one year, but I will treat the others as good but extreme data. Here is a version of the histogram that better displays the waiting time for the majority of patients. 
+
+```{r}
+no_shows <- filter(no_shows, wait < 365)
+qplot(x = wait, data = no_shows, color = I('black'), fill= I('darkorange'), binwidth = 3) + labs(x='Waiting Time in Days', y = 'Number of Patients', title='Waiting Time Histogram') + coord_cartesian(xlim=c(0,110)) + scale_x_continuous(breaks=seq(0,110,10))
+```
+As can be seen, the majority of patients wait less than 10 days. Based on these visualizations, and the summary statistics for the dataframe, I think that the content of the dataset is valid. I can now start investigating the relationships, or lack thereof, between the variables in the data. 
+
+## Searching for Relationships
+
+The first step I can take is to find the correlations between all of the columns. Once I identify the strongest correlations, I can then graph those correlations to see if the visualizations agree with the statistics. 
+
+```{r}
+ccs <- as.matrix(no_shows[,c(1, 6:17)])
+rcorr(ccs, type='pearson')
+
+```
+Well, from those correlations, it appears that there are no strong predictors of whether or not a patient will miss a visit. However, I still think there are meaningful relationships to extract from the data. My approach will be to group the data by various fields and then determine if the average rate of attendance shows any relationship to different variables. The first variable will be month. Does the month affect the rate of attendance? 
+
+
+```{r}
+# Create a column with the year and month as decimal for potential use later
+no_shows$appt_date_decimal <- no_shows$appt_year + (no_shows$appt_month / 12)
+no_shows_by_date <- group_by(no_shows, appt_date_decimal)
+no_shows_by_date <- dplyr::summarize(no_shows_by_date,
+                              absence_rate = mean(status),
+                              n = n())
+
+no_shows_by_month <- group_by(no_shows, appt_month)
+no_shows_by_month <- dplyr::summarize(no_shows_by_month,
+                                      absence_rate = mean(status),
+                                      n = n())
+
+month_labels = c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul' , 'Aug', 'Sep', 'Oct', 'Nov' , 'Dec')
+no_shows_by_month$month_name <- month_labels
+no_shows_by_month$month_name <- factor(no_shows_by_month$month_name, levels=unique(no_shows_by_month$month_name))
+ggplot(aes(x = month_name, y = absence_rate), data = no_shows_by_month) + geom_point(color = 'red')  + labs(x = 'Month of Appointment', y = 'No-Show Rate', title='No-Show Rate vs Appointment Month') + theme(axis.text.x=element_text(angle = 60, face = "bold", size = 12)) 
+```
+It is clear that there is no relationship present here. I would have expected the rates of no-shows to increase during the holiday season in December, and while that may be the case, it is difficult to tell if that is actually statistically significant. The scale on the y-axis is in increments of 1%, and these differences are minor. I will do the same grouping, but this time by day of the month.
+
+```{r}
+no_shows_by_day <- group_by(no_shows, appt_day)
+no_shows_by_day <- dplyr::summarize(no_shows_by_day,
+                                    absence_rate = mean(status),
+                                    n = n())
+ggplot(aes(x = appt_day, y = absence_rate), data = no_shows_by_day) + geom_point(color = 'red')  + labs(x = 'Day of Appointment', y = 'No-Show Rate', title='No-Show Rate vs Appointment Day') + scale_x_continuous(breaks=seq(1,31,1)) + geom_line(color='blue')
+
+cor.test(no_shows_by_day$appt_day, no_shows_by_day$absence_rate)
+```
+Looking at the [Pearson Correlation Coefficient](http://www.statisticshowto.com/what-is-the-pearson-correlation-coefficient/), we can see that there is a slight correlation between day of the month and absence rate. As the end of the month approaches, the absence rate tends to increase although the correlation is very weak. I can do the same graph for the day of the year.
+
+```{r}
+# Load in gridExtra library for multiple plots
+library(gridExtra)
+
+p1 <- ggplot(aes(x = appt_date, y = status), data = subset(no_shows, appt_year == 2014)) + geom_point(aes(color = gender),stat = 'summary', fun.y = mean)  + labs(x = 'Appt. Date (M-D)', y = 'Absence Rate', title = 'Absence Rate vs. Day of Year 2014') + scale_x_date(date_breaks = "1 month", date_labels = "%m-%d") + theme(axis.text.x  =element_text(angle = 70, hjust = 1)) 
+
+
+p2 <- ggplot(aes(x = appt_date, y = status), data = subset(no_shows, appt_year == 2015)) + geom_point(aes(color = gender),stat = 'summary', fun.y = mean)  + 
+  labs(x = 'Appt. Date (M-D)', y = 'Absence Rate', title = 'Absence Rate vs. Day of Year 2015') + scale_x_date(date_breaks = "1 month", date_labels = "%m-%d") + theme(axis.text.x  =element_text(angle = 70, hjust = 1))
+
+grid.arrange(p1, p2, ncol = 1)
+
+
+
+```
+
+Again, it looks as if there is no real correlation betwen the time of year and the absence rate for appointments. Moreover, adding in the gender does not reveal any major descrepancies. There are several days for which the absence rate is 1, which bears some more investigation. I have a hunch that these points might corespond to major holidays. However, they are not consistent across the two years, so that may not be the case. Either way, looking at the major holidays in might reveal a relationship. I sourced the holidays based on [public holidays in Brazil](http://www.officeholidays.com/countries/brazil/2015.php)
+
+```{r}
+
+# First for the 2015 plot
+
+ggplot(aes(x = appt_date, y = status), data = subset(no_shows, appt_year == 2015)) +                  geom_point(aes(color = gender),stat = 'summary', fun.y = mean)  + 
+  labs(x = 'Appt. Date (M-D)', y = 'Absence Rate', title = 'Absence Rate vs. Day of Year 2015') +     scale_x_date(date_breaks = "1 month", date_labels = "%m-%d") + 
+  theme(axis.text.x  =element_text(angle = 70, hjust = 1)) + 
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2015-12-25")))), linetype = 2, color = 'brown') + 
+  geom_text(aes(x=(as.Date("2015-12-25")), y=0.6, label='Christmas'), size=3, angle=90,        vjust=-0.4, hjust=0) +
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2015-11-02")))), linetype = 2, color = 'brown') + 
+  geom_text(aes(x=(as.Date("2015-11-02")), y=0.6, label='All Saints Day'), size=3, angle=90,        vjust=-0.4, hjust=0) +
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2015-05-01")))), linetype = 2, color = 'brown') + 
+  geom_text(aes(x=(as.Date("2015-05-01")), y=0.6, label='May Day'), size=3, angle=90,        vjust=-0.4, hjust=0) + 
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2015-09-07")))), linetype = 2, color = 'brown') + 
+  geom_text(aes(x=(as.Date("2015-09-07")), y=0.6, label='Independence Day'), size=3,          angle=90, vjust=-0.4, hjust=0) + 
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2015-02-16")))), linetype = 2, color = 'brown') + 
+  geom_text(aes(x=(as.Date("2015-02-16")), y=0.6, label='Carnival'), size=3, angle=90,        vjust=-0.4, hjust=0) + 
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2015-04-03")))), linetype = 2, color = 'brown') + 
+  geom_text(aes(x=(as.Date("2015-04-03")), y=0.6, label='Good Friday'), size=3, angle=90,        vjust=-0.4, hjust=0) 
+
+  
+```
+Again, it seems as if these holidays do not line up with higher rates of missed appointments. There is an increase in the absence rate around the beginning of July, but it does not seem to correspond to any holidays. I researched festivals in Brazil in June-July 2015, and it appears that the [Paraty International Literary Festival](http://www.telegraph.co.uk/travel/destinations/south-america/brazil/articles/brazil-events/) occured July 1-5, but I doubt that this explains the absence rate. There was not city data associated with the original dataset, so it is difficult to attempt to cross-reference specific dates with specific events. I will do the same with 2014. I remember that the [2014 World Cup was held in Brazil](http://www.fifa.com/worldcup/archive/brazil2014/), so perhaps the time around the world cup will have a higher absence rate. I will plot a few holidays and then the dates surrounding the World Cup (which lasted for a month).
+
+```{r}
+ggplot(aes(x = appt_date, y = status), data = subset(no_shows, appt_year == 2014)) +                  geom_point(aes(color = gender),stat = 'summary', fun.y = mean)  + 
+  labs(x = 'Appt. Date (M-D)', y = 'Absence Rate', title = 'Absence Rate vs. Day of Year 2014') +     scale_x_date(date_breaks = "1 month", date_labels = "%m-%d") + 
+  theme(axis.text.x  =element_text(angle = 70, hjust = 1)) + 
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2014-12-25")))), linetype = 2, color = 'brown') + 
+  geom_text(aes(x=(as.Date("2014-12-25")), y=0.6, label='Christmas'), size=3, angle=90,        vjust=-0.4, hjust=0) +
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2014-06-12")))), linetype = 2, color = 'green') + 
+  geom_text(aes(x=(as.Date("2014-06-12")), y=0.6, label='World Cup Start'), size=3, angle=90,        vjust=-0.4, hjust=0) +
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2014-07-13")))), linetype = 2, color = 'green') + 
+  geom_text(aes(x=(as.Date("2014-07-13")), y=0.6, label='World Cup End'), size=3, angle=90,        vjust=-0.4, hjust=0) + 
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2014-04-21")))), linetype = 2, color = 'brown') + 
+  geom_text(aes(x=(as.Date("2014-04-21")), y=0.6, label='Tiradentes'), size=3,          angle=90, vjust=-0.4, hjust=0) + 
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2014-03-04")))), linetype = 2, color = 'brown') + 
+  geom_text(aes(x=(as.Date("2014-03-04")), y=0.6, label='Carnival'), size=3, angle=90,        vjust=-0.4, hjust=0) 
+
+```
+
+Maybe there is a slight increase in absence rate during the World Cup? I can compare the average absence rate during that period to the average absence rate over the entire length of 2014. 
+```{r}
+100 * mean(no_shows$status[no_shows$appt_year==2014],)
+100 * mean(no_shows$status[no_shows$appt_date < "2014-07-13" & no_shows$appt_date > "2014-06-12"],)
+
+```
+Well there certainly is not a significant jump in the absence rate during the World Cup. It looks like in terms of time variability, there is no significant correlation based on the time of year, and a slight positive correlation between the absence rate of the day of the month (as the end of the month nears, the absence rate increases slightly). There is one more time variation I can look at, and that is day of the week. To reiterate, I also show the appointment days of the week count. 
+
+```{r}
+table(no_shows$weekday)
+
+ggplot(aes(x = factor(weekday, weekdays(as.Date('1970-01-03') + 2:8)), y= status), data = no_shows)+  geom_bar(stat= 'summary', fun.y = mean, color = 'black', fill = 'navy') + 
+  labs(x='Appt. Day of the Week', y = 'Absence Rate', title = 'Absence Rate vs Weekday') + 
+  scale_y_continuous(breaks = seq(0.15, 0.45, 0.05)) + coord_cartesian(ylim=c(0.15,0.45))  
+
+```
+Finally, it looks like there might be a trend in this data. Excluding Saturday and Sunday because of their small sample sizes, Monday and Friday have the highest absence rate. I will change the plot slightly to show the absence rate relative to the mean absence rate.
+
+```{r}
+days_of_week = c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday') 
+
+
+# Find mean of days of the week
+weekday_mean = mean(no_shows$status[no_shows$weekday %in% days_of_week],)
+
+# Create a new dataframe with statistics for weekdays only
+no_shows_by_weekday <- group_by(no_shows, weekday)
+no_shows_by_weekday <- summarise(no_shows_by_weekday, 
+                                absence_rate = mean(status),
+                                relative_absence_rate = 100*  (mean(status) - weekday_mean) / weekday_mean,
+                                n = n())
+
+no_shows_by_weekday <- filter(no_shows_by_weekday, weekday %in% days_of_week)
+
+# Plot relative absence rate by day of the week 
+ggplot(aes(x = factor(weekday, weekdays(as.Date('1970-01-03') + 2:6)),
+           y= relative_absence_rate) , data = no_shows_by_weekday) +
+  geom_bar(stat='identity', color='black', lwd= 1.2, fill = 'coral') + labs(x='Day of Week', y= 'Relative Absence Rate (%)', title ='Relative Absence Rate by Day of Week') + coord_cartesian(ylim=c(-5,7))
+```
+There finally appears to be meaningful relationship in the time variability of the data. Excluding weekends because of small sample sizes, patients are __6% more likely to miss an appointment on a Monday__ compared to average, and __4% less likely to miss an appointment on a Tuesday__. This is an actionable discovery! If patients want to keep their appointments, and if doctors want to make sure their patients show up, they should schedule their appointments during the middle three days of the week. 
+
+I want to move away from the time variability and look at the demographic data now. In particular, I am interested in whether or not age is correlated with the absence rate. My initial guess would be that the youngest and the oldest patients tend to have lower absence rates. Meanwhile, those patients in the middle would generally be healthier and would feel more inclined to skip an appointment (everyone is convinced they are invincible in their 20s.In fact, this was one of the issues associated with the intial rollout of Obamacare. Too many young, healthy individuals [did not believe they needed insurance](https://www.usnews.com/news/articles/2016-09-07/young-invincibles-remain-elusive-for-obamacare) and therefore did not sign up for healthcare.) 
+
+First I will group simply by age and then incorporate gender into the grouping.
+
+```{r}
+
+no_shows_by_age<-group_by(no_shows, age)
+no_shows_by_age <- dplyr::summarize(no_shows_by_age,
+                             absence_rate = mean(status),
+                             n = n())
+
+ggplot(aes(x = age, y = absence_rate), data = no_shows_by_age) + geom_line(color='blue') + geom_point() +
+  labs(x = 'Age (yrs)', y = 'Absence Rate' , title = 'Absence Rate vs Age of Patient')
+```
+It looks like we might have some relationship here! First though, it is clear that there there are too many outliers in the upper end of the data. They introduce a considerable amount of noice. At this point as there are only 719 patients over 90 out of 300000 entries, I think I can filter out any ages over 90 without impacting the quality of the data. I'll do that and then improving the appearance graph. 
+
+```{r}
+nrow(subset(no_shows, age > 90))
+no_shows_by_age <- filter(no_shows_by_age, age < 90)
+
+ggplot(aes(x = age, y = absence_rate), data = no_shows_by_age) + geom_line(color='green4', lwd = 1.6) + scale_x_continuous(breaks=seq(0,90,5)) + geom_hline(aes(yintercept=mean(no_shows$status)), linetype = 4, color='red') + 
+  labs(x = 'Age (yrs)', y = 'Absence Rate' , title = 'Absence Rate vs Age of Patient') +  geom_text(aes(x = 75, y=0.308, label='Mean for All Ages'), size=4, color = 'red') + geom_smooth(method='lm')
+
+
+```
+There are plenty of interesting relationships to be observed in this graph. We can see that the youngest ages have a relatively low absence rate with an exception for 1-year-olds. The absence rate then rises for teenagers, peaking around age 20, before beginning a long, gradual decline to around 70, where the absence rate then rises again slightly. I am curious at to precisely which ages have the highest and lowest absence rates. Moreover, what is the correlation between age and absence rate?
+```{r}
+no_shows_by_age[no_shows_by_age$absence_rate == max(no_shows_by_age$absence_rate),]
+no_shows_by_age[no_shows_by_age$absence_rate == min(no_shows_by_age$absence_rate),]
+cor.test(no_shows_by_age$age, no_shows_by_age$absence_rate)
+```
+Again, here is some actionable news. We need to work on getting teenagers to show up to their appointments! We can further bin the data in five years increments to highlight the "problem years", that is, the years with the highest missed appointment rate. I will plot the relative absence rate, or the average age group rate relative to the average for all ages. Remember, in this plot, below the x-axis is great because it means that the age group has a lower rate of missed appointments than the average. 
+
+```{r}
+
+no_shows_by_age$age_bucket <- cut(no_shows_by_age$age, breaks= seq(0,90, 5), include.lowest=TRUE)
+
+no_shows_by_age_bucket <- group_by(no_shows_by_age, age_bucket)
+no_shows_by_age_bucket <- dplyr::summarize(no_shows_by_age_bucket,
+                                           absence_rate = mean(absence_rate),
+                                           n = n())
+
+no_shows_by_age_bucket$relative_absence_rate <- with(no_shows_by_age_bucket, 100 *(absence_rate - mean(absence_rate)) / mean(absence_rate))
+ggplot(aes(x = age_bucket, y = relative_absence_rate), data= no_shows_by_age_bucket) + geom_bar(stat='identity', color='black', fill = 'steelblue', lwd = 0.8) + 
+  theme(axis.text.x=element_text(angle = 60, hjust=1)) + labs(x = 'Age Group', y = 'Relative Absence Rate %', title = 'Relative Absence Rate vs Age Group') + scale_y_continuous(breaks=seq(-40, 40, 10))
+
+```
+We can clearly see from this chart that the worst group in terms of absence rate is (15-20] year-olds and the best group is (70-75]. I think that is pretty definitive in terms of ages. The correlation between ages and absence rate is -0.86 which is strongly negative. This indicates that as the age of the patient increases, statistically, they are less likely to miss an appointment. 
+
+After finally finding a strong relationship within the data, I think it is time to move on to some other variables. I would like to test two more possible relationships: that between absence rate and text message reminders, and that between waiting time and absence rate. My hypothesis at this point is that patients with a longer waiting time are more likely to miss their appoinment because they made it far ahead of time and their condition has likely changed in the interim. Moreover, I think that patients with a shorter waiting time are more likely to need urgent care, which means it would be in their best interest to definitely not miss the appointment. Furthermore, I think that patients who recieve SMS messages will be more likely to attend the appointment than those not receiving them. However, this could be complicated by the fact that younger patients are more likely to sign up for text message alerts, and as we have already seen, young individuals are more inclined to record an absence. Therefore, I would be curious to see who exactly is recieving those text messages and then the correlation between text messages and attendance at the appointment. 
+
+```{r}
+no_shows_by_wait <- group_by(no_shows, wait)
+no_shows_by_wait <- dplyr::summarize(no_shows_by_wait, 
+                                     absence_rate = mean(status),
+                                     n = n())
+
+ggplot(aes(x = wait, y = absence_rate), data = no_shows_by_wait) + geom_point(color='navy') + 
+  labs(x = 'Wait (days)' , y = 'Absence Rate', title = 'Absence Rate vs Waiting Time') + geom_smooth(method="lm")
+
+cor.test(no_shows_by_wait$absence_rate, no_shows_by_wait$wait)
+```
+Well that graph certainly does not show any relationship. However, thinking back on the histogram of waiting time that I created in the initial stages, the majority of the patients waited under 100 days. There are far fewer data points from people waiting more than 100 days which is why the average absence rate for those times tends to be either 0% or 100%. If I limit the data to people with a waiting time less than 3 months (90 days), might there exist a relationship? I will further group the data into 10 day segments.
+```{r}
+
+# Check to see how many people had a waiting time over 90 days. 
+nrow(subset(no_shows, wait > 90))
+
+# Limit data to those with a waiting time less than 90 days (3 months)
+no_shows_by_wait <- filter(no_shows_by_wait, wait< 90)
+no_shows_by_wait$wait_bucket <- cut(no_shows_by_wait$wait, breaks = seq(0,90,10), include.lowest = TRUE)
+
+no_shows_by_wait_bucket <- group_by(no_shows_by_wait, wait_bucket)
+no_shows_by_wait_bucket <- dplyr::summarize(no_shows_by_wait_bucket,
+                                           absence_rate = mean(absence_rate),
+                                           n = n())
+
+no_shows_by_wait_bucket$relative_absence_rate <- with(no_shows_by_wait_bucket, 100 *(absence_rate - mean(absence_rate)) / mean(absence_rate))
+ggplot(aes(x = wait_bucket, y = relative_absence_rate), data = no_shows_by_wait_bucket) + 
+  geom_bar(stat='identity', color='black', fill='red4', lwd = 0.8) + scale_y_continuous(breaks=seq(-30, 20, 5)) + 
+  labs(x = 'Wait Time Group (days)', y = 'Relative Absence Rate %', title = 'Relative Absence Rate vs Waiting Time Group')
+
+cor.test(no_shows_by_wait$absence_rate, no_shows_by_wait$wait)
+
+```
+Looking at the graph and the correlation coefficient, it can be seen that there is a slight positive correlation between the rate of absences and the elapsed time between scheduling an appointment and the appointment itself. I tried to do some research on this subject in general, and found this from the [Safety Net Dental Clinic](https://www.dentalclinicmanual.com/chapt4/6_3.html): "Experience in many safety net dental programs also suggests that the incidence of broken appointments increases when appointments are scheduled more than three weeks in advance." Based on my analysis, I concur. Patients who schedule less than 10 days out are __20%__ less likely to miss an appointment than those scheduling further out. The Safety Net Dental Clinic page mentions that often other life events get in the way if we schedule too far out, so add that point to the list of recommedations for patients looking to adhere to a scheduled appointment. 
+
+So far, my research can be summarized as follows: __make the appointment earlier in the month, make the appointment on a Tuesday, Wednesday, or Thursdays, teenagers have a higher absence rate than any other age group and the absence rate tends to decrease with age (with a few exceptions at the end of the scales), and schedule the appointment no more than 10 days in advance__. 
+I want to look at how SMS messages correlate with the rate of absenteeism, and I will also explore the various conditions and who is most likely to show up depending on their ailment. First the SMS messages. 
+
+```{r}
+no_shows_by_sms <- group_by(no_shows, sms_reminder)
+no_shows_by_sms <- dplyr::summarize(no_shows_by_sms, 
+                                    absence_rate = mean(status),
+                                    n = n())
+ggplot(aes(x = sms_reminder, y = absence_rate), data = no_shows_by_sms) + geom_bar(stat='identity', color='black', fill='green4') + labs(x = 'Number of SMS Reminders', y = 'Absence Rate' , title = 'Absence Rate vs Number of SMS Reminders') +  geom_text(aes(label = sprintf("%0.4f", absence_rate), y = absence_rate + 0.026), size = 4, hjust = 0.5, vjust = 3) + coord_cartesian(ylim=c(0.2,0.4)) + scale_y_continuous(breaks=seq(0.2, 0.4, 0.05))
+```
+That is a little surprising to me. I would have expected SMS reminders to be strongly correlated with a decrease in absence rate. Maybe the direction of thsi relationship is the opposite of what I would expect. I would think that more SMS messages would make patients more likely to attend an appointment, but perhaps, patients who are least likely to attend an appointment recieve more text messages. One way to check for this would be to look at average SMS messages recieved by age. I expect there might be odd behavior at the ends of this graph (how young do children recieve their first phone nowadays? I'm sure it gets earlier every year). Maybe there will be some relationships hidden within the data though. 
+
+```{r}
+ggplot(aes(x = age, y = sms_reminder), data = subset(no_shows, age < 90)) + geom_line(stat='summary', fun.y = mean, color='red') + labs(x = 'Age (yrs)', y = 'Average Number of SMS Reminders', title='Average SMS Reminders vs Age' ) + scale_x_continuous(breaks= seq(0,90, 10)) + geom_smooth(method = 'lm' ,color='green')
+
+```
+Sure enough, it looks like average SMS reminders is higher among the younger ages. I looked through the data provider information, and I could not ascertain whether or not those SMS reminders were for the parent in the case of a very young child. I would have to guess that is the case. There is a strong negative correlation between the number of SMS messages and the age of the patient.
+```{r}
+
+no_shows_by_age_texts <- group_by(no_shows, age)
+no_shows_by_age_texts <- filter(no_shows_by_age_texts, age < 90)
+no_shows_by_age_texts$sms_reminder <- factor(no_shows_by_age_texts$sms_reminder)
+ggplot(aes(x = age, y = status), data = no_shows_by_age_texts) + geom_line(aes(color=sms_reminder), stat = 'summary', fun.y = mean, lwd = 2) + labs(x = 'Age (yrs)', y = 'Absence Rate', title='Absence Rate vs Age by Reminders' ) + scale_color_discrete(name='Num of SMS Reminders')
+
+no_shows_by_age_texts <- dplyr::summarize(no_shows_by_age_texts,
+                                   average_reminders = mean(as.numeric(as.character(sms_reminder))),
+                                   absence_rate = mean(status),
+                                   n = n())
+
+cor.test(no_shows_by_age_texts$average_reminders, no_shows_by_age_texts$age)
+
+```
+Looking at the graph, we can see that the absence rate versus age scaled by number of SMS reminders looks much the same for the 0 or 1 reminders. However, the graph for 2 reminders is much noisier. I suspect that is due to the lower sample size of people receiving two reminders (which was the maximum). Moreover, the Pearson correlation coefficient between age and number of reminders is -0.80 which indicates a strong inverse linear relationship between the number of reminders and age. Overall, there is a slight increase in the absence rate with 1 or 2 reminders compared to no reminders. However, if we look at a given age, does the absence rate decrease with reminders? 
+
+```{r}
+no_shows_no_reminder <- no_shows[no_shows$sms_reminder == 0 & no_shows$age < 90,]
+no_shows_with_reminder <- no_shows[no_shows$sms_reminder > 0 & no_shows$age < 90 ,]
+
+no_shows_no_reminder <- group_by(no_shows_no_reminder, age)
+no_shows_with_reminder <- group_by(no_shows_with_reminder, age)
+
+no_shows_no_reminder <- dplyr::summarize(no_shows_no_reminder, 
+                                  absence_rate_no_reminder = mean(status))
+no_shows_with_reminder <- dplyr::summarize(no_shows_with_reminder,
+                                    absence_rate_with_reminder = mean(status))
+
+no_shows_reminder <- merge(no_shows_no_reminder, no_shows_with_reminder, by = 'age')
+
+no_shows_reminder <- transform(no_shows_reminder, diff = absence_rate_with_reminder - absence_rate_no_reminder)
+
+ggplot(aes(x = age, y = 100* diff), data = no_shows_reminder) + geom_line(color = 'darkorange', lwd = 1.4) + labs(x='Age (yrs)' , y = 'Absence Rate w\\ Reminder - Absence Rate w\\o Reminder (%)', title = 'Absence Rate Difference by Text Message Reminder vs Age') + scale_x_continuous(breaks=seq(0,90,10))
+
+100 * mean(no_shows_reminder$diff)
+
+```
+
+Yes, it appears that at a given age, __the absence rate decreases with 1 or 2 reminders__. In fact, the average difference in absence rate holding age constant is -0.57%. That means that having a reminder at a given age decrease the chance that a patient will miss the appointment by 0.6%. This may seem small, but it could add up over millions of appointments. Moreover, there are certain ages, particularly in the teenage years, when the effect of the SMS reminders is much greater. The reduction is missed appointments is as great as -4.5% at age ten and near 3% during much of the teenage years. This is what I would expect. This is also what research into text message reminders has found. One study, [conducted in Brazil](http://www.sciencedirect.com/science/article/pii/S1386505609001336), found that: "The nonattendance reduction rates for appointments at the four outpatient clinics studied were 0.82% (p = .590), 3.55% (p = .009), 5.75% (p = .022), and 14.49% (p = <.001)." The conclusion of this research was: "The study results indicate that sending appointment reminders as text messages to patients' cell phones is an effective strategy to reduce nonattendance rates. When patients attend their appointments, the facility providing care and the patients receiving uninterrupted care benefit." Based on my analysis of the data, I must concur that at a given age, SMS reminders decrease the absence rate. Another item that could be implemented in the real world to improve outcomes! 
+## Conditions
+
+The final step in this analysis is to look at the absence rate by the condition for which the patient visited the doctor. I will group by the conditions and then look at the average absence rate for each condition. 
+
+```{r}
+conditions = colnames(no_shows[7:12])
+absence_rates <- c(0,0,0,0,0,0)
+
+no_shows_by_condition <- data.frame(absence_rate = c(0,0,0,0,0,0), counts = c(0,0,0,0,0,0), marker =  conditions)
+
+for (i in seq(1, length(conditions))){
+  condition <- conditions[i]
+  no_shows_by_condition[i, 1] <- mean(no_shows$status[no_shows[, condition] == 1],)
+  no_shows_by_condition[i, 2] <- table(no_shows[, condition] == 1)['TRUE']
+}
+
+
+ggplot(aes(x = marker, y = absence_rate), data = no_shows_by_condition) + geom_bar(stat='identity', color = 'black', fill = 'goldenrod4') + labs(x='Marker', y= 'Absence Rate' , title = 'Absence Rate vs Marker') + 
+  scale_y_continuous(breaks = seq(0.2, 0.4, 0.02)) + coord_cartesian(ylim = c(0.2,0.4)) + 
+  geom_text(aes(label = sprintf("%0.4f", absence_rate), y = absence_rate + 0.024), size = 4, hjust = 0.5, vjust = 3) 
+
+```
+It appears as though there are considerable differences here between those with different markers. Tuberculosis has the highest rate of absence, followed by alcoholism. However, these conditions also make up a small sample of the overall visits. Diabeters and hypertension have the lowest absence rate. Interestingly, patients marked as being part of the Bolsa Familia welfare program have a high rate of absences. This program rewards patients for attending appointments, which I would think would induce patients to visit their doctor more often. Perhaps there are other factors at play here though. It could be that families who are on the welfare program cannot take the time to visit the doctor because of the opportunity cost of not working. Here is a the percentage of all visits each condition makes up. 
+
+```{r}
+
+no_shows_by_condition$pct_of_vists <- 100 * no_shows_by_condition$counts / nrow(no_shows)
+no_shows_by_condition
+```
+The final plot I can make is of the conditions and the relative percentage difference in absence rates. I like these plots because it is easier to see if one variable is above or below the average. Again, for this particular plot, values below the x-axis are great because it means the absence rate is lower than the overall average. 
+
+```{r}
+no_shows_by_condition$relative_absence_rate <- 100 * (no_shows_by_condition$absence_rate - mean(no_shows$status)) / mean(no_shows$status) 
+
+```
+Create the plot compared to the average. 
+
+```{r}
+ggplot(aes(x = marker, y= relative_absence_rate), data = no_shows_by_condition) + geom_bar(stat='identity' , color = 'black', fill= 'lemonchiffon2') + labs(x= 'Marker' , y= 'Relative Absence Rate %' , title= 'Relative Absence Rate vs. Marker') + scale_y_continuous(breaks = seq(-20, 40, 5))
+```
+The differences between conditions here are stark. Again, the smaller sample sizes associated with alcoholism and especially tuberculosis must be taken into account, but it is clear that patients with diabetes and hypertension are more likely to attend an appointment. In fact, they are 15% less likely to miss an appointment then the average patient. This is a fairly interesting result and I wonder if it is because of the constant need for care when treating both of these conditions. It would seem like all of the conditions require care on an ongoing basis, and I would need some more information before I drew any conclusions about the markers and the absence rate numbers. 
+
+# Summary and Reflections
+
+I started this project off with the simple question: what factors are most likely to determine whether or not a patient shows up to their scheduled doctor's appointment? As the exploratory data analysis went on, I found this single question had grown into dozens. Does the number of SMS reminders correlated with absence rates? How about if we compare SMS reminders for a given age? Are there major variabilities that we can observe associated with holidays? I found my curiousity and interest in the dataset only grew as I delved further and further. Although at first it appeared there were few meaningful relationships, by grouping and segmenting the data, there were clear trends that emerged. Keeping in mind again that this dataset was comprised of 300,000 patient visits in Brazil scheduled with public, primary care physicians in 2014-2015, the following are the most notable discoveries I made about the dataset:
+
+* There is no significant change in the absence rate over the course of the year broken down by month. 
+  + December has the highest absence rate and January has the lowest but there is no trend in between.
+* There is a slight positive correlation between absence rate and the day of the month. As the month progresses, the percentage of missed appointments rises, although the Pearson Correlation Coefficient is a very weak 0.247
+* There is no correlation in the absence rate over the days of the year. 
+  + Major Brazilian holidays did not correspond to any significant changes in the absence rate.
+  + During the month-long World Cup in 2014 in Brazil, the absence rate increased by only 0.6%.
+* Excluding the weekends, the day of the week with the highest absence rate is Monday followed by Friday. Tuesday had the lowest rate of absences and appointments on Tuesday were 4% more likely to be attended than those on the other days of the week. 
+* The age of patients was strongly negatively correlated with absence rates with a correlation coefficient of -0.86. 
+  + As the age of the patient increased, the likelihood that they would not show up to their appointment decreased.
+  + There were some exceptions to this however. The youngest patients had a relatively low rate of missed appointments, then the rate rose and peaked in the teens, before gradually declining until age 70 where it showed a slight increase.
+  + 18-year-olds had the highest rate of absences at 40.2%
+  + 72-year-olds had the lowest rate of absences at 20.2%
+* There was a slight positive correlation between the rate of missed appointments and how many days in advance the patient scheduled the appointment. 
+  + The correlation between absence rate and waiting time for the appointment was 0.29. 
+  + Patients who made an appointment less than 10 days in advance were around 20% more likely to attend the appointment than those who made the appointment further ahead of time. 
+* When looking at the dataset as a whole, patients who recieved one or two SMS reminders were more likely to miss an appointment than those who recieved no reminders. However, the correlation between age and average text messages recieved was -0.80 meaning that younger patients, who were more likely to miss appointments overall, recieved more text messages which means that the effect of text messages should be studied at a given age. 
+  + At a specific age, patients who recieved 1 or 2 text messages were 0.5% less likely to miss an appointment than those receiving no text messages. This effect was even more pronounced in some age categoires including the teenage years. 
+  + Therefore, based on my data analysis and concurring research, text message reminders decreased the absence rate especially for those most prone to missing appointments. 
+* Patients whose appointments were marked with tuberculosis and alcoholism were the most likely to miss the visit, while those coded for hypertension and diabetes were the least likely to miss their appointment.
+  + Patients with families in the Bolsa Familia program were more likely to miss an appointment than the average patient.
+  + Patients with hypertension or diabetes were 15% more likely to show-up for the appointment than the average overall patient. 
+  
+These are but a few briefs observations that can be gleaned from this dataset. Keeping in mind that [correlations do not imply causations](https://xkcd.com/552/) ([more serious link for those interested](https://web.cn.edu/kwheeler/logic_causation.html)), and looking at the small sample sizes in some of the groupings, it appears that there are actionable items that came out of the data analysis. 
+
+# Final Three Plots 
+
+The final aspect of the probject I wanted to do was revisit and polish three of my earlier plots. I am concerned primarily with whether or not they correctly convey the information within the dataset, and my secondary objective is of course aesthetics. What good is a chart if it does not look presentable? 
+
+### Absence Rate vs. Day of the Year
+
+The first chart was notable to me because of the lack of relationships it revealed. It is the graph of absence rate versus day of the year in 2014 with holidays (and the World Cup) included. I would have initially believed that absence rates spiked around holidays and also near the end of the year. However, no clear trend emerged from this plot. In order to make it more presentable, I altered some of the colors, changed the scale on the axis, and made sure all labels were accurate. 
+```{r}
+
+yearly_mean <- 100*mean(no_shows$status[no_shows$appt_year == 2014],)
+
+ggplot(aes(x = appt_date, y = 100 * status), data = subset(no_shows, appt_year == 2014)) +                          geom_point(aes(color = gender),stat = 'summary', fun.y = mean)  + 
+  labs(x = 'Appt. Date (M-D)', y = 'Absence Rate %', title = 'Absence Rate vs. Day of Year 2014') +                 scale_x_date(date_breaks = "1 month", date_labels = "%b-%d")+
+  scale_color_manual(name='Gender', values =c('red3','royalblue3')) + 
+  theme(axis.text.x  =element_text(angle = 70, hjust = 1)) + 
+  scale_y_continuous(breaks=seq(0,100,20)) + coord_cartesian(ylim=c(0,100)) + 
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2014-12-25")))), lwd = 1.1, linetype = 2, color = 'sienna4') + 
+  geom_text(aes(x=(as.Date("2014-12-25")), y=65, label='Christmas'), size=3.6, angle=90, vjust=-0.4, hjust=0) +
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2014-06-12")))), lwd = 1.1,  linetype = 2, color = 'green4') + 
+  geom_text(aes(x=(as.Date("2014-06-12")), y=65,label='World Cup Start'), size=3.6, angle=90,vjust=-0.4, hjust=0)+
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2014-07-13")))),lwd = 1.1,  linetype = 2, color = 'green4') + 
+  geom_text(aes(x=(as.Date("2014-07-13")), y=65,label='World Cup End'), size=4, angle=90, vjust=-0.4, hjust=0)+ 
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2014-04-21")))), lwd = 1.1, linetype = 2, color = 'sienna4') + 
+  geom_text(aes(x=(as.Date("2014-04-21")), y=65, label='Tiradentes'), size=3.6, angle=90, vjust=-0.4, hjust=0) + 
+  geom_vline(aes(xintercept=(as.numeric(as.Date("2014-03-04")))), lwd = 1.1, linetype = 2, color = 'sienna4') + 
+  geom_text(aes(x=(as.Date("2014-03-04")), y=65,label='Carnival'), size=3.6, angle=90, vjust=-0.4, hjust=0) + 
+  geom_hline(aes(yintercept= yearly_mean), linetype = 1, lwd = 1.2) 
+  
+  
+
+```
+### Absence Rate vs Age by SMS Reminders
+
+I also wanted to take another look at the Absence Rate versus both age and SMS reminders. I liked this graph, because when I initially looked at the data showing that overall, people who received text message reminders had higher absences rates, I was a little skeptical. However, after some thought, I soon realized that people who received text messages were more likely to be younger, and I had seen that the younger the patient, the higher the absence rate. Therefore, I decided to look at the effect of text messages reminders at each given age. When I was able to complete that visualization, I saw that indeed, SMS reminders do reduce the absence rate at a given age. I plotted this difference, but wanted to improve the graph. To make the point clearer, I plotted the average absence rate vs age for those who received no reminders and those who did receive reminders. The original graphs were very noisy, so I applied a moving average over 5 years. The 5 year window was a selection based on the [bias-variance tradeoff](http://machinelearningmastery.com/gentle-introduction-to-the-bias-variance-trade-off-in-machine-learning/) because I wanted a smoother plot, but I did not want to introduce a high level of bias into the averages. After refining the graph, it is possible to observe both the trend of fewer absences at older ages, and the effectiveness of SMS reminders in reducing the absence rate. 
+
+```{r}
+# Load in library for rolling average
+suppressMessages(library(zoo))
+
+# Take rolling average over 5 years years
+no_shows_reminder$no_reminder_rolling_mean <- zoo::rollmean(no_shows_reminder$absence_rate_no_reminder, 5, fill = NA)
+no_shows_reminder$reminder_rolling_mean <- zoo::rollmean(no_shows_reminder$absence_rate_with_reminder, 5, fill = NA)
+
+# Plot average absence rate versus age by text reminders. 
+ggplot(aes(x = age), data = no_shows_reminder) + 
+  geom_line(aes(y = 100*reminder_rolling_mean, color = 'SMS Reminders'), lwd = 1.2) + 
+  geom_line(aes(y = 100* no_reminder_rolling_mean, color = 'No SMS Reminders') , lwd = 1.2) + 
+  labs(x='Age (yrs)' , y = 'Absence Rate (%)', title = 'Absence Rate vs Age by SMS Reminder') +                     scale_x_continuous(breaks=seq(0,90,10)) + scale_color_manual(name = '', values = c('darkorange', 'navy')) + 
+  scale_y_continuous(breaks=seq(15,45,5)) + coord_cartesian(ylim=c(18,40))
+
+
+```
+### Absence Rate vs Waiting Time Group
+
+The final graph I wanted to refine was the relative absence rate vs waiting time graph. I initially grouped the waiting time, or the elasped days between when the appointment was made and when the appointment occurred, by groups of five days. I then plotted the relative absence rate ((absence rate for group - overall absence rate) / overall absence rate) for each group. I was a little surprised to discover how much lower the absence rate was for those sceduling less than 10 days in advance. However, I thought I could improve this graph by narrowing the bin wdiths and cut the data into smaller increments of waiting time. I also decided to add in a model created with LOESS, [Local Regression](http://www.math.wpi.edu/saspdf/stat/chap38.pdf), method of regression. I created a simple model and then used the prediction it generated for each age grouping. I am pleased with the overall graph and it reveals the crucial information that appointments scheduled shorter out tend to have higher attendance rates. 
+
+```{r}
+no_shows_by_wait <- group_by(subset(no_shows, wait < 90), wait)
+no_shows_by_wait <- dplyr::summarize(no_shows_by_wait,
+                              absence_rate = mean(status))
+
+no_shows_by_wait <- transform(no_shows_by_wait, relative_absence_rate = 100 * (absence_rate - mean(absence_rate ))/ mean(absence_rate))
+
+model <- loess(no_shows_by_wait$relative_absence_rate ~ no_shows_by_wait$wait)
+
+pr <- predict(model, newdata=data.frame(wait=1:89))
+
+no_shows_by_wait$pr <- pr
+
+# Cut the data into groups of 3 days of waiting
+no_shows_by_wait$wait_bucket <- cut(no_shows_by_wait$wait, breaks = seq(0,90,3), include.lowest = TRUE)
+
+# Create a new dataframe with the wait bucket and summarize
+no_shows_by_wait_bucket <- group_by(no_shows_by_wait, wait_bucket)
+no_shows_by_wait_bucket <- dplyr::summarize(no_shows_by_wait_bucket,
+                                           absence_rate = mean(absence_rate),
+                                           pr = mean(pr),
+                                           n = n())
+
+# Find the percent absence rate relative to the overall average absence rate
+no_shows_by_wait_bucket$relative_absence_rate <- with(no_shows_by_wait_bucket, 100 *(absence_rate - mean(absence_rate)) / mean(absence_rate))
+
+
+# Plot the results
+ggplot(aes(x = wait_bucket, y = relative_absence_rate), data = no_shows_by_wait_bucket) + 
+  geom_bar(stat='identity', color='black', fill='red4', lwd = 0.8) + scale_y_continuous(breaks=seq(-30, 20, 5)) + 
+  labs(x = 'Wait Time Group (days)', y = 'Relative Absence Rate %', title = 'Relative Absence Rate vs Waiting Time Group') + theme(axis.text.x = element_text(angle = 70, hjust = 1)) + geom_point(aes(y= pr)) + geom_line(aes(x = wait_bucket, y = pr, color='LOESS model prediction'), group = 1, lwd = 1) + scale_color_manual(name='', values = 'darkblue')
+
+
+
+```
+## Reflections 
+
+Overall, the reason I choose to learn data analysis was so I could extract meaningful information from the mounds of data generated in our modern world. Having the ability to take 300,000 patient visits and come away with implementable solutions to increase the rate at which people attend their doctor's appointments is rewarding. The next steps from here would be to perform confirmatory data anaylsis to test any hypothesis that I might have formed during the initial observations. Exploratory data analysis can discover potential relationships, but it would take more rigorous statical tests to determine whether these correlations are statistically meaningful. Further work on this data could include constructing models and using machine learning to attempt to predict the most likely patients to miss an appointment. Extra effort could then be made to ensure that these patients see their doctors as recommended. Moreover, with a more complete dataset, including city or more demographic information such as income level, many more observations could be made including correlations with weather or possibly with access to public transportation. The initial exploratory data analysis has revealed plenty of tantalizing relationships, and this dataset holds plenty of actionable information that could improve patient outcomes and public health. 
