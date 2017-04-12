@@ -4,9 +4,15 @@ author: "Will Koehrsen"
 date: "April 9, 2017"
 output: html_document
 ---
-# Introduction to Dataset
+# Abstract 
 
-I wanted to choose a dataset that was both relatable and could potentially be used to make smarter decisions. Therefore, I decided to work with [medical appointment no shows data available on Kaggle](https://www.kaggle.com/joniarroba/noshowappointments). This dataset is drawn from 300,000 patient visits in Brazil. I wanted to see what factors of an appointment were most strongly correlated with whether or not a patient would show up to their appointment. 
+Doctor's appointment no-shows are a serious issue in the public health care field. Missed appointments are associated with poorer patient outcomes and cost the [health care system in the US nearly $200 each.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4714455/) Therefore it comes as no small surprise that reducing the rate of no-shows has become a priority in the United States and around the world. [Numerous studies](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3962267/) have been undertaken in order to determine the most effective means of 
+reducing rates of absenteeism at with varying degrees of success. The first step to solving the problem of missed appointments is identifying why a patient skips a scheduled visit in the first place. What trends are there among patients with higher absence rates? Are there demographic indicators or perhaps time-variant relationships hiding in the data? Ultimately, it was these questions that drove my exploratory data analysis. I was curious as to the reasons behind missed appointments, and wanted to examine the data to identify any trends present. I choose this problem because I believe it is an excellent example of how data science and analysis can reveal relationships which can be implemented in the real-world to the benefit of society. 
+
+## Introduction to Dataset
+
+I wanted to choose a dataset that was both relatable and could be used to make smarter decisions. Therefore, I decided to work with [medical appointment no shows data available on Kaggle](https://www.kaggle.com/joniarroba/noshowappointments). This dataset is drawn from 300,000 primary physcian visits in Brazil across 2014 and 2015. The information about the appointment was automatically coded when the patient scheduled the appointment and then the patient was marked as having either attended or not. The information about the appointment included demongraphic data, time data, and conditions concerning the reason for the visit. 
+
 There were a total of 14 variables I included from the original data. The variables are as follows
 
 1. __Age__: integer age of patient
@@ -15,14 +21,14 @@ There were a total of 14 variables I included from the original data. The variab
 4. __AppointmentDate__: date of appointment without time
 5. __DayOfTheWeek__: day of the week of appointment
 6. __Status__: Show-up or No-Show
-7. __Diabetes__: 0 or 1 for condition
+7. __Diabetes__: 0 or 1 for condition (1 means patient was scheduled to treat condition)
 8. __Alcoholism__: 0 or 1 for condition
 9. __Hypertension__: 0 or 1 for condition
 10. __Smoker__: 0 or 1 for smoker / non-smoker
-11. __Scholarship__: 0 or 1 indicating whether the family of the patient takes part in the [Bolsa Familia Program](http://www.worldbank.org/en/news/opinion/2013/11/04/bolsa-familia-Brazil-quiet-revolution), an intiative that provides families with small cash transfers in exchange for keeping children in school and completing health care visits. 
+11. __Scholarship__: 0 or 1 indicating whether the family of the patient takes part in the [Bolsa Familia Program](http://www.worldbank.org/en/news/opinion/2013/11/04/bolsa-familia-Brazil-quiet-revolution), an intiative that provides families with small cash transfers in exchange for keeping children in school and completing health care visits
 12. __Tuberculosis__: 1 or 0 for condition
-13. __SMSReminder__: 0 ,1 ,2 for number of text message reminders
-14. __WaitingTime__: integer number of days between when the appointment was made, and when the appointment takes place. 
+13. __SMSReminder__: 0 ,1 ,2 for number of text message reminders sent to patient about appointment
+14. __WaitingTime__: integer number of days between when the appointment was made and when the appointment took place. 
 
 ```{r setup, include=FALSE}
 
@@ -30,27 +36,25 @@ There were a total of 14 variables I included from the original data. The variab
 knitr::opts_chunk$set(echo = TRUE)
 
 # Load in required packages
-library(ggplot2)
-library(plyr)
-library(dplyr)
-library(reshape2)
-library(Hmisc)
-library(GGally)
+suppressMessages(library(ggplot2))
+suppressMessages(library(plyr))
+suppressMessages(library(dplyr))
+suppressMessages(library(reshape2))
+suppressMessages(library(Hmisc))
+suppressMessages(library(GGally))
 
 # Read in the data
 no_shows <- read.csv('noshows.csv')
-
-
 ```
 
-## Data Cleaning and Preliminary Investigation
-Let's take a look at the structure of the dataframe to see what changes might need to be made. 
+## Data Organization and Cleaning
+
+Let's take a look at the structure of the dataframe to identify cleaning/organizing that may need to be performed.
 ```{r}
 str(no_shows)
 ```
-From the structure of the dataframe, I can see there is a little bit of cleaning that needs to be done. First I want to change the status into an integer 0 or 1. A value of 1 will indicate that the patient did not show up as I am concerned with the varaibles that are most strongly correlated with a missed appointment. Then, I will convert the registration date and the appointment date to date objects.I decided not to maintain the time (hours:minutes:seconds) associated with the registration date for the apointment although it was available (time of day was not available for the appointment date). I converted both the appointment registration date and appointment date to date objects so I could investigate seasonal and time patterns in the data. 
+From the structure of the dataframe, I can see there is some data housekeeping that needs to be done. First, I want to change the Status variable into an integer 0 or 1. A value of 1 will indicate that the patient did not show up as I am concerned with the variables that are most strongly correlated with a missed appointment. Moreover, I need to convert the registration date and the appointment date to date objects. I decided not to maintain the time (hours:minutes:seconds) associated with the registration date for the apointment although it was available (time of day was not available for the appointment date). I converted both the appointment registration date and appointment date to date objects so I could investigate seasonal and time patterns in the data. 
 ```{r}
-
 # Create numeric factors out of the two levels in status field
 no_shows['Status'] <- lapply(no_shows['Status'], factor,  levels=c("Show-Up", "No-Show"), labels = c(0, 1))
 # Change the factors in the the status column into 1: patient missed appointment and 0: patient attended appointment
@@ -62,12 +66,10 @@ no_shows$AppointmentRegistrationDate <- gsub(pattern = "[A-Z]", replacement = " 
 no_shows$AppointmentDate <- as.Date(no_shows$AppointmentDate)
 no_shows$AppointmentRegistrationDate <- as.Date(no_shows$AppointmentRegistrationDate)
 str(no_shows)
-
 ```
-Based on the update structure of the dataframe, it looks like I am on the right track.  I have a couple more modifications to make to the dataframe. I will create month, year, and day fields for the appointment and also rename the colmuns to a more consistent and readable format. 
+Based on the updated structure of the dataframe, it looks like I am on the right track but I still have a couple more modifications to make to the dataframe. I will create month, year, and day fields for the appointment and also rename the colmuns to a more consistent and readable format. 
 
 ```{r}
-
 # Extract month, year, and day from appointment date and create new columns
 no_shows <-transform(no_shows, month = format(AppointmentDate, "%m"))
 no_shows <- transform(no_shows, year = format(AppointmentDate, "%Y"))
@@ -96,56 +98,90 @@ no_shows <- plyr::rename(no_shows, c("Age" = "age",
                                "year" = "appt_year",
                                "day" = "appt_day"))
 
-# Look at the summary of statistics for the dataframe
-summary(no_shows)
-
 ```
-The summary of the no_shows dataframe reveals plenty of intriguing information as well as several errors that need to be corrected. Right away, it is clear that an age of -2 is not correct, and 113 is stretching the boundaries. However, looking at the [oldest people in the world](https://en.wikipedia.org/wiki/List_of_the_verified_oldest_people), it is plausible that 113 could be a correct age. I will filter out any negative ages and create a histogram of ages to see if there remain outliers at the upper end. Moreover, this data shows that __30.24%__ of appointments are missed based on the mean for the status field. The rates for the various conditions can also be seen, and it the most commonly coded reason for an appointment is hypertension at nearly 22%. Also, the weekends appear to be a very unpopular time for doctor's appointments in Brazil, or perhaps the clinics from which this data was drawn are not open on the weekend. Either way, I will need to keep the small sample size of appointments on the weekend in mind when I do any analysis by weekday. 
+That should about do it for the structure of the main dataframe. I am also concerned with missing/corrupted data, so I will look at the summary of each field to see if any obvious errors or outliers are present in the data. 
 
 ```{r}
+# Look at the summary of statistics for the dataframe
+summary(no_shows)
+```
+The summary of the no_shows dataframe reveals plenty of intriguing information as well as several errors that need to be corrected. Right away, it is clear that an age of -2 is not correct, and 113 is stretching the boundaries. However, looking at the [oldest people in the world](https://en.wikipedia.org/wiki/List_of_the_verified_oldest_people), it is plausible that 113 could be a correct age. I will filter out any negative ages and create a histogram of ages to see if there are a significant amount of outliers at the upper end. Moreover, this data summary shows that __30.24%__ of appointments are missed based on the mean for the status field. The rates for the various patient conditions can also be seen, and the most commonly coded reason for an appointment is __hypertension at nearly 22% of visits__. Also, the weekends appear to be a very unpopular time for doctor's appointments in Brazil, or perhaps the clinics from which this data was drawn are not open on the weekend. Either way, I will need to keep the small sample size of appointments on the weekend in mind when I perform an analysis by weekday. 
+
+```{r}
+# Filter out ages below 0
 no_shows <- filter(no_shows, age >= 0)
 # Set all titles in plots to be centered
 theme_update(plot.title=element_text(hjust = 0.5))
 
+# Create histogram of ages
 qplot(x = age, data = no_shows, color = I('black') , fill = I('blue'), binwidth = 1) + theme(legend.position="None") + 
-  labs(x='Age', y="Number of Patients", title='Age Histogram') + scale_x_continuous(breaks=seq(0,110, 10))
+  labs(x='Age', y="Number of Patients", title='Frequency Distriution of Ages') + scale_x_continuous(breaks=seq(0,110, 10))
+
+
 
 ```
-The age histogram goes somewhat against my intutions. I expected that it would be bi-modal, with peaks at the youngest ages and then again at the oldest ages. However, while the largest number of patients do appear to be the youngest, there is only a slight increase into the middle ages, with a second peak around age 55 and then a steep decline into the oldest ages. Based on the visualization, there do not appear to be a large number of outliers in the upper range of the dataset. I was skeptical of the high proportion of visits from those aged 0 and decided to do some research.  Based on the description of the dataset, this is for the public sector and primary care physicians. I could not find statistics from Brazil, but based on [official statistics from the Centers for Disease Control](https://www.cdc.gov/nchs/fastats/physician-visits.htm) in the United States, children under 1 year of age make up 2.6% of all physician visits. 
+The age histogram does not aligh exactly with my intutions though it is close. I expected that it would be [bi-modal](http://www.statisticshowto.com/what-is-a-bimodal-distribution/), with peaks in patient count at the youngest ages and at the oldest ages. However, while the largest number of patients do appear to be the youngest, the number of patients remains fairly constant into the middle ages, with a second peak around age 60 and then a steep decline into the oldest ages. Based on the visualization, there do not appear to be a large number of outliers in the upper range of the ages. I was skeptical of the high proportion of visits from those aged 0 and decided I needed to do some research.  Based on the description of the dataset, this data is for primary care physicians in the public sector and so I looked for a breakdown of ages of patients at these appointments. I could not find statistics from Brazil, but based on [official statistics from the Centers for Disease Control](https://www.cdc.gov/nchs/fastats/physician-visits.htm) in the United States, children under 1 year of age make up 2.6% of all physician visits. I can create a better plot showing the percentage each age is of all patients. I can also quickly check the percentage of visits comprised of patients aged 0 in the data.  
 ```{r}
-nrow(subset(no_shows, age < 1)) / nrow(no_shows) * 100
+# Group the main dataframe by age and calculate the number of occurences of each age
+no_shows_by_age <- group_by(no_shows, age)
+no_shows_by_age <- dplyr::summarize(no_shows_by_age,
+                          n = n())
+
+# Add field with percentage of all patients
+no_shows_by_age$pct <- 100* no_shows_by_age$n / nrow(no_shows)
+
+# Create the bar plot
+ggplot(aes(x = age, y = pct), data = no_shows_by_age) + geom_bar(stat='identity', color = 'black', fill = 'blue') + 
+  labs(x = 'Age', y= '% of All Patients', title='Age Breakdown of Patients') + scale_y_continuous(breaks=seq(0,4,0.50)) +
+  scale_x_continuous(breaks=seq(0,110, 10))
+
+# Calculate percentage of patients with an age of 0
+nrow(subset(no_shows, age == 0)) / nrow(no_shows) * 100
 ```
-A simple calculation shows that 0-year olds make up 3.44% of visits in this dataset. While the frequency distribution may looked skewed, the number of bins (ages) makes it look like 0-year olds dominate the data more than is actually the case. From the research by the CDC and the visualization, I conclude that the age distribution skew is not bad data, and the outliers at the low end are good but extreme data. I will make another histogram, this time of the waiting time (or how long between the date the appointment was made, and the actual date of the appointment) to check for outliers in that field.
+The calculation shows that 0-year olds make up 3.44% of visits. While the initial frequency distribution may looked skewed, the spread of the data along the years makes it look like 0-year olds make up considerably  more of the visits than is actually the case. The corrected bar plot does a better job of representing the proportion of patients from each age. From the research by the CDC and the visualization, I conclude that the age distribution skew is not bad but rather legitimate data. To check for outliers in the waiting time field (or how long between the date the appointment was made and the actual date of the appointment), I will make another histogram.
 
 ```{r}
-qplot(x = wait, data = no_shows, color = I('black'), fill= I('darkorange'), binwidth = 5) + labs(x='Waiting Time in Days', y = 'Number of Patients', title='Waiting Time Histogram') 
+# Create histogram for waiting time
+qplot(x = wait, data = no_shows, color = I('black'), fill= I('darkorange3'), binwidth = 5) + labs(x='Waiting Time in Days', y = 'Number of Visits', title='Wait Time Frequency Distribution') + scale_y_continuous(breaks=seq(0,90000, 15000)) + scale_x_continuous(breaks=seq(0, 400, 20))
 ```
-From the summary statistics, the longest waiting time was 398 days, with a median of 8 days, and a mean of 13.84 days. From the histogram and the stats, it is clear that there are a small number of patients who wait a long time for their appointment. I wonder if the 398 days is accidentally a mistake that occured when someone choose the wrong year for their appointment! The graph is certainly long-tailed with a few outliers at the upper end of wait time. 
+From the summary statistics, the longest waiting time was 398 days, with a median of 8 days, and a mean of 13.84 days. From the histogram and the statistics, it is clear that there are a small number of patients at the upper end of the distribution who schedule their appointment very far in advance. I wonder if the 398 days is accidentally a mistake that occured when someone choose the wrong year for their appointment! The graph is certainly long-tailed and positively skewed with a few extreme outliers at the upper limit. 
 
 ```{r}
+# Subset the data and count the rows
 nrow(subset(no_shows, wait > 365))
 nrow(subset(no_shows, wait > 180))
-
 ```
-It appears there is only one patient with a waiting time over one year and just over 100 (out of 300000) with a waiting time of over six months. I will exclude the patient with the waiting time over one year, but I will treat the others as good but extreme data. Here is a version of the histogram that better displays the waiting time for the majority of patients. 
+It appears there is only one patient with a waiting time over one year and just over 100 (out of 300000) with a waiting time of over six months. I will exclude the patient with the waiting time over one year, but I will treat the others as good but extreme data. Here is a version of the histogram that better represents the wait time for most patients. 
 
 ```{r}
+# Remover wait time over one year
 no_shows <- filter(no_shows, wait < 365)
-qplot(x = wait, data = no_shows, color = I('black'), fill= I('darkorange'), binwidth = 3) + labs(x='Waiting Time in Days', y = 'Number of Patients', title='Waiting Time Histogram') + coord_cartesian(xlim=c(0,110)) + scale_x_continuous(breaks=seq(0,110,10))
+# Create a new dataframe by grouping and find the statistics
+no_shows_by_wait <- group_by(no_shows, wait)
+no_shows_by_wait <- dplyr::summarize(no_shows_by_wait,
+                                     n = n())
+
+# Find the wait time percentage of all appointments
+no_shows_by_wait$pct <- 100 * no_shows_by_wait$n / nrow(no_shows)
+
+# Plot the data as a bar plot
+ggplot(aes(x = wait, y = pct), data = no_shows_by_wait) + geom_bar(stat= 'identity', color = 'black', fill = 'darkslategrey') + labs(x='Waiting Time in Days', y = '% of All Visits', title='Wait Time Pct Breakdown') + coord_cartesian(xlim=c(0,90)) + scale_x_continuous(breaks=seq(0,90,5))
 ```
-As can be seen, the majority of patients wait less than 10 days. Based on these visualizations, and the summary statistics for the dataframe, I think that the content of the dataset is valid. I can now start investigating the relationships, or lack thereof, between the variables in the data. 
+As can be seen, a plurality of patients wait less than 10 days between the scheduling and the date of their appointment. Based on these visualizations, and the summary statistics for the dataframe, I am confident that the data content of the main dataframe is valid. I can now start the exploration phase of exploratory data analysis! It is time to discover the relationships, or lack thereof, between the variables in the data. 
 
 ## Searching for Relationships
 
-The first step I can take is to find the correlations between all of the columns. Once I identify the strongest correlations, I can then graph those correlations to see if the visualizations agree with the statistics. 
+The first step I can take is to find the correlations between all of the columns to see if any stand out as particularly compelling. Of course, I expect that all the trends will not reveal themselves straight away. The [rcorr function](http://math.furman.edu/~dcs/courses/math47/R/library/Hmisc/html/rcorr.html) from the Hmisc library will calculate the Pearson's correlation coeffient between every field of a dataframe.  The [Pearson correlation coefficient](http://www.statisticshowto.com/what-is-the-pearson-correlation-coefficient/), is a measure of how linearly dependent two variables on each other. The coefficient value is between -1 and +1, and two variables that are perfectly linearly correlated will have a value of +1.
 
 ```{r}
+# Find correlations between the selected fields (numeric fields only were chosen)
 ccs <- as.matrix(no_shows[,c(1, 6:17)])
-rcorr(ccs, type='pearson')
+rcorr(ccs, type='pearson')[1]
 
 ```
-Well, from those correlations, it appears that there are no strong predictors of whether or not a patient will miss a visit. However, I still think there are meaningful relationships to extract from the data. My approach will be to group the data by various fields and then determine if the average rate of attendance shows any relationship to different variables. The first variable will be month. Does the month affect the rate of attendance? 
+Well, from those correlation values, there are no standouts that are strong linear predictors of whether or not a patient will miss a visit. However, I still think there are meaningful relationships to extract from the data. My approach will be to group the data by various fields and then determine if the average absence rate shows a relationship with the fields. The first variable will be month. Does the month of the year affect the rate of attendance of doctor's appointments?
 
+### Month of Year 
 
 ```{r}
 # Create a column with the year and month as decimal for potential use later
@@ -180,7 +216,7 @@ Looking at the [Pearson Correlation Coefficient](http://www.statisticshowto.com/
 
 ```{r}
 # Load in gridExtra library for multiple plots
-library(gridExtra)
+suppressMessages(library(gridExtra))
 
 p1 <- ggplot(aes(x = appt_date, y = status), data = subset(no_shows, appt_year == 2014)) + geom_point(aes(color = gender),stat = 'summary', fun.y = mean)  + labs(x = 'Appt. Date (M-D)', y = 'Absence Rate', title = 'Absence Rate vs. Day of Year 2014') + scale_x_date(date_breaks = "1 month", date_labels = "%m-%d") + theme(axis.text.x  =element_text(angle = 70, hjust = 1)) 
 
