@@ -1,0 +1,4 @@
+The dataset I choose for this project was the doctor's appointment no-show data available from Kaggle (https://www.kaggle.com/joniarroba/noshowappointments). 
+It is composed of 300,000 scheduled visits for public, primary care physicians in Brazil from 2014-2015. It was downloaded as noshows.csv. A more complete description of the data can be found in the report itself. 
+All of the coding and documentation work was done in the noShows.rmd R markdown file. The r markdown file was converted to html as the noShows.html file. 
+All sources used are linked to in the report. Of course, I also must reference the Udacity Exploratory Data Analysis Course!
