@@ -1,0 +1,94 @@
+body {
+    background: #fff;
+    color: #757575;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+}
+
+img {
+    max-width: 100%
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #000;
+    margin-bottom: 24px;
+}
+
+h3 {
+    font-size: 1.4em;
+    text-transform: uppercase;
+    color: #000;
+    margin-top: 0;
+}
+
+p, a {
+    line-height: 1.7em;
+    font-weight: lighter;
+    letter-spacing: 1px;
+    font-size: 16px;
+}
+
+li {
+    padding: 7px 0;
+}
+
+.navbar {
+    min-height: 60px;
+}
+
+.navbar-inverse {
+    background-image: none;
+    background-color: #1c262f;
+    border-color: #1c262f;
+}
+
+.logo {
+    max-width: 207px;
+    max-height: 50px;
+}
+
+.main {
+    margin-bottom: 24px;
+}
+
+.main-title {
+    text-align: center;
+}
+
+.footer {
+    background-color: #f4f4ef;
+    padding: 24px 15px 36px;
+}
+
+.footer-header {
+    font-weight: normal;
+    color: #757575;
+}
+
+nav.social {
+    clear: both;
+    padding-top: 24px;
+}
+
+nav.social ul.social_links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav.social ul.social_links li {
+  display: inline-block;
+}
+
+nav.social ul.social_links li a {
+  display: block;
+  width: 22.5px;
+  height: 22.5px;
+  margin-right: 18px;
+  line-height: 0;
+  opacity: .6;
+  transition: opacity .3s ease;
+}
