@@ -29,7 +29,7 @@ Rp13
 (dp14
 S'k'
 p15
-I20
+I19
 sg6
 g7
 sS'score_func'
@@ -75,7 +75,7 @@ p34
 I1
 sS'min_samples_split'
 p35
-I10
+I20
 sS'random_state'
 p36
 NsS'criterion'
@@ -93,8 +93,7 @@ Nsg6
 g7
 sS'max_depth'
 p42
-I5
-sS'class_weight'
+NsS'class_weight'
 p43
 Nsbtp44
 asb.
