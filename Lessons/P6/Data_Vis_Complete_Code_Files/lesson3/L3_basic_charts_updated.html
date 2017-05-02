@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+    
+    <style>
+      circle.dimple-series-1 {
+        fill: red;
+      }
+
+      h2 {
+        text-align: center;
+      }
+    </style>
+
+    <script type="text/javascript">
+      function draw(data) {
+      
+      /*
+        D3.js setup code
+      */
+
+          "use strict";
+          var margin = 75,
+              width = 1400 - margin,
+              height = 600 - margin;
+
+          // d3.select("body")
+          //   .append("h2")
+          //   .text("World Cup Attendance")
+
+          var svg = d3.select("body")
+            .append("svg")
+              .attr("width", width + margin)
+              .attr("height", height + margin)
+            .append('g')
+                .attr('class','chart');
+
+      /*
+        Dimple.js Chart construction code
+      */
+
+          d3.select("svg")
+            .selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle");
+
+          // Find range of date column
+          var time_extent = d3.extent(data, function(d) {
+              return d['date'];
+          });
+
+          // Find range of attendance column
+          var count_extent = d3.extent(data, function(d) {
+              return d['attendance'];
+          })
+
+          // Create x-axis scale mapping dates -> pixels
+          var time_scale = d3.time.scale()
+            .range([margin, width])
+            .domain(time_extent);
+
+          // Create y-axis scale mapping attendance -> pixels
+          var count_scale = d3.scale.linear()
+            .range([height, margin])
+            .domain(count_extent);
+
+          var time_axis = d3.svg.axis()
+            .scale(time_scale)
+            .ticks(d3.time.years, 2);
+
+          var count_axis = d3.svg.axis()
+            .scale(count_scale)
+            .orient("left");
+
+          d3.select("svg")
+            .append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(time_axis);
+
+          d3.select("svg")
+            .append("g")
+            .attr("class", "y axis")
+            .attr("transform", "translate(" + margin + ",0)")
+            .call(count_axis);
+
+          debugger;
+
+          d3.selectAll("circle")
+            .attr("cx", function(d) {
+                return time_scale(d["date"]);
+            })
+            .attr("cy", function(d) {
+                return count_scale(d["attendance"]);
+            })
+            .attr("r", radius)
+            .attr("fill", color);
+        };
+
+    </script>
+  </head>
+<body>
+  <script type="text/javascript">
+  /*
+    Use D3 (not dimple.js) to load the TSV file
+    and pass the contents of it to the draw function
+  */
+
+  //example date: 27-05-1934 (16:00 h)
+  format = d3.time.format("%d-%m-%Y (%H:%M h)");
+
+  d3.tsv("world_cup_geo.tsv", function(d) {
+      // transform data
+      d['date'] = format.parse(d['date']);
+      d['attendance'] = +d['attendance'];
+      return d;
+  }, draw);
+  </script>
+</body>
+</html>
