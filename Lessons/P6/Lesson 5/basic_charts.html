@@ -4,42 +4,57 @@
   <meta charset="utf-8">
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
-    <script type="text/javascript">
-      function draw(data) {
-      
-      /*
-        D3.js setup code
-      */
 
-          "use strict";
-          var margin = 75,
-              width = 1400 - margin,
-              height = 600 - margin;
+    <style>
+      circle.dimple-series-1 {
+        fill: red;
+      }
 
-          var svg = d3.select("body")
-            .append("svg")
-              .attr("width", width + margin)
-              .attr("height", height + margin)
-            .append('g')
-                .attr('class','chart');
+      h2 {
+        text-align: center;
+      }
+    </style>
+  <script type="text/javascript">
+    function draw(data) {
+    
+    /*
+      D3.js setup code
+    */
 
-      /*
-        Dimple.js Chart construction code
-      */
+        "use strict";
+        var margin = 75,
+            width = 1400 - margin,
+            height = 600 - margin;
 
-          var myChart = new dimple.chart(svg, data);
-          var x = myChart.addTimeAxis("x", "year", '%Y' , '%Y'); 
-          x.timeInterval = 4;
-          var y = myChart.addMeasureAxis("y", "attendance");
-          y.title = 'total attendance';
-          myChart.addSeries('stage', dimple.plot.scatter);
-          myChart.addSeries('stage', dimple.plot.line);
-          myChart.addLegend("10%,20px", "10%,20px","10%,20px","10%,20px")
-          myChart.draw();
+        d3.select("body")
+        .append("h2")
+        .text("World Cup Attendance over Time")
 
-          debugger;
-        };
-      </script>
+        var svg = d3.select("body")
+          .append("svg")
+            .attr("width", width + margin)
+            .attr("height", height + margin)
+          .append('g')
+              .attr('class','chart');
+
+    /*
+      Dimple.js Chart construction code
+    */
+
+        var myChart = new dimple.chart(svg, data);
+        var x = myChart.addTimeAxis("x", "year", '%Y' , '%Y'); 
+        x.timeInterval = 4;
+        var y = myChart.addMeasureAxis("y", "attendance");
+        y.title = 'total attendance';
+        myChart.addSeries(null, dimple.plot.scatter);
+        myChart.addSeries(null, dimple.plot.line);
+        myChart.addSeries('stage', dimple.plot.line);
+        myChart.addLegend("10%,20px", "10%,20px","10%,20px","10%,20px")
+        myChart.draw();
+
+        debugger;
+      };
+    </script>
   </head>
 <body>
   <script type="text/javascript">

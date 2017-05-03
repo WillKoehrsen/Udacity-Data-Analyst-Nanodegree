@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+
+<select  id="cs" name="cs" >
+</select>
+<button id="btn">World</button>
+
+    <script type="text/javascript">
+    function drawCountry {
+
+        "use strict";
+        var margin = 75,
+            width = 1400 - margin,
+            height = 800 - margin;
+
+        var svg = d3.select("body")
+          .append("svg")
+            .attr("width", width + margin)
+            .attr("height", height + margin)
+          .append('g')
+            .attr('class', 'chart');
+
+        debugger;
+        var myChart = new dimple.chart(svg, data);
+        var x = myChart.addTimeAxis("x", "Year", "%Y", "%Y");
+        x.timeInterval = 1;
+        var y = myChart.addMeasureAxis("y", "Emissions");
+        myChart.addSeries("Country", dimple.plot.bar);
+        myChart.draw()
+
+        function drawWorld(worldData) {
+          var myChart = new dimple.chart(svg, worldData);
+          var x = myChart.addTimeAxis("x", "Year", "%Y", "%Y");
+          x.timeInterval = 1;
+          var y = myChart.addMeasureAxis("y", "Emissions");
+          myChart.addSeries("Country", dimple.plot.scatter);
+          myChart.addSeries("Country", dimple.plot.line);
+          myChart.draw()
+        }
+
+    };
+
+  
+    </script>
+</head>
+
+<body>
+    <script type="text/javascript">
+    country_values = d3.csv("country_emissions.csv")
+    debugger;
+    </script>
+</body>
+</html>>
