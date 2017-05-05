@@ -92,7 +92,7 @@
 								'y' : center_y,
 								'teams' : teams.values()
 							};
-					}
+							}
 					
 					var nested = d3.nest()
 													.key(function(d) {
@@ -133,7 +133,7 @@
 				function update(year) {
 						var filtered = nested.filter(function(d) {
 								return new Date(d['key']).getUTCFullYear() === year;
-						});
+						})
 
 						var circles = svg.selectAll("circle")
 															.data(filtered, key_func);
@@ -163,10 +163,8 @@
 					};
 
 					debugger;
-					update(2004);
-
+					update(2010);	
 				};
-
 				var format = d3.time.format("%d-%m-%Y (%H:%M h)");
 
 				d3.tsv("world_cup_geo.tsv", function(d){
