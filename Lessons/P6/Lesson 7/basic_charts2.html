@@ -1,28 +1,10 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <script src="http://d3js.org/d3.v3.min.js"></script>
-    <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
-    
-    <style>
-      circle {
-        opacity: 0.4;
-      }
-
-      h2 {
-        text-align: center;
-      }
-
-      .axis path {
-        stroke-opacity: 0.5;
-        fill: #fff;
-      }
-
-
-    </style>
+<head>
+  <meta charset="utf-8">
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
     <script type="text/javascript">
-
       function draw(data) {
       
       /*
@@ -32,10 +14,7 @@
           "use strict";
           var margin = 75,
               width = 1400 - margin,
-              height = 600 - margin,
-              radius = 2.5,
-              color = 'blue';
-
+              height = 600 - margin;
 
           var svg = d3.select("body")
             .append("svg")
@@ -47,86 +26,23 @@
       /*
         Dimple.js Chart construction code
       */
-          
-          console.table(data.slice(-10));
-          
-          // data binding to elements
+          console.log(data.slice(0,10));
+          console.table(data.slice(0,10));
+          debugger
           d3.select('svg')
             .selectAll('circle')
             .data(data)
             .enter()
             .append('circle');
 
-          // find range of time field
-          var time_extent = d3.extent(data, function(d) {
-              return d['date'];
-          });
-
-          // find range of attendance field
-          var count_extent = d3.extent(data, function(d){
-            return d['attendance'];
-          });
-
-          // create time scale for mapping time data to pixels
-          var time_scale = d3.time.scale()
-            .range([margin, width])
-            .domain(time_extent);
-
-          // create attendance scale for mapping attendance data to pixels
-          var count_scale = d3.scale.linear()
-            .range([height, margin])
-            .domain(count_extent);
-
-
-          // create time axis 
-          var time_axis = d3.svg.axis()
-            .scale(time_scale)
-            .ticks(d3.time.years, 2); //every two years
-
-          // create attendance axis
-          var count_axis = d3.svg.axis()
-            .scale(count_scale)
-            .orient('left');
-
           debugger; 
-
-
-          // add x axis to svg and translate down height
-          d3.select('svg')
-            .append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(0,' + height + ')')
-            .call(time_axis)
-            .selectAll('text')
-            .attr("y", 0)
-            .attr("x", 9)
-            .attr("dy", ".35em")
-            .attr("transform", "rotate(90)")
-            .style("text-anchor", "start");
-
-
-          // add y axis and translate over margin 
-          d3.select('svg')
-            .append('g')
-            .attr('class', 'y axis')
-            .attr('transform', 'translate('+ margin + ', 0)')
-            .call(count_axis);
-          
-
-          d3.select('body')
-            .append('h2')
-            .attr('text', 'World Cup Game Attendances');
-          
-          // create the circles
-          d3.selectAll('circle')
-            .attr('cx', function(d){
-              return time_scale(d['date']);
-            })
-            .attr('cy', function(d){
-              return count_scale(d['attendance']);
-            })
-            .attr('r', radius)
-            .attr('fill', color);
+          var x = myChart.addTimeAxis("x", "year"); 
+          myChart.addMeasureAxis("y", "attendance");
+          x.dateParseFormat = "%Y";
+          x.tickFormat = "%Y";
+          x.timeInterval = 4;
+          myChart.addSeries(null, dimple.plot.bar);
+          myChart.draw();
         };
 
       </script>
@@ -137,18 +53,7 @@
     Use D3 (not dimple.js) to load the TSV file
     and pass the contents of it to the draw function
     */
-  
-      // transform data
-
-      // example date: 28-06-1954 (16:00 h)
-      //strptime object
-format = d3.time.format("%d-%m-%Y (%H:%M h)");
-d3.tsv("world_cup_geo.tsv", function(d) {
-    d['date'] = format.parse(d['date']);
-    d['attendance'] = +d['attendance'];
-    return d;
-}, draw);
-
+  d3.tsv("world_cup_geo.tsv", draw);
   </script>
 </body>
 </html>
