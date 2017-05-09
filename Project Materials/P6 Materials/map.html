@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/d3.geo.projection.v0.min.js"></script>
+	<style>
+
+	/*
+	svg {
+		stroke-width: 0px;
+		background-color: steelBlue;
+	}
+	*/
+
+	h1 {
+		text-align: center;
+		vertical-align: middle;
+	}
+
+	h2 {
+		text-align: center;
+	}
+
+
+	.yearForm {
+		display: block;
+		margin: 0 auto;
+	}
+
+.animateButton {
+		display: block;
+		margin: 0 auto;
+	}
+
+	.yearForm {
+		display: block;
+		margin: 5px auto;
+		text-align: center;
+	}
+
+	circle {
+		fill: burlywood;
+    stroke: black;
+    stroke-width: 0.8;
+    opacity: 0.95;
+	}
+	</style>
+
+	<script type="text/javascript">
+
+	function draw(geographic_data){
+			
+			"use strict";
+			var margin = 75,
+					width = 1600 - margin,
+					height = 900 - margin;
+
+			var svg = d3.select("body")
+					.append("svg")
+					.attr("width", width + margin)
+					.attr("height", height + margin)
+					.attr("transform", "translate(60,20)")
+					.append("g")
+					.attr("class", "map");
+
+				var projection = d3.geo.naturalEarth()
+						.scale(290)
+						.translate([width / 2, height / 2]);
+
+				var path = d3.geo.path().projection(projection);
+
+				var map = svg.selectAll("path")
+						.data(geographic_data.features)
+						.enter()
+						.append("path")
+						.attr("d", path)
+						.style("fill", "gold")
+						.style("opacity", 0.8)
+						.style("stroke", "black")
+						.style("stroke-width", 0.8);
+
+				var countries_loc = [];
+
+				for(var i=0; i<geographic_data.features.length; i+=1) {
+						countries_loc[geographic_data.features[i].properties.name] = [path.centroid(geographic_data.features[i])[0], path.centroid(geographic_data.features[i])[1] ]
+				}
+
+				var years = [];
+				var start_year = 1880,
+					end_year = 2013,
+					step = 10;
+
+				for(var i=start_year; i<end_year; i+=step){
+						years.push(i);
+				}
+
+		function plot_emissions(data) {
+			// draw emissions dots on countries sized by emissions
+			// User will have choice to animate by decade or select year
+			var radius = d3.scale.sqrt()
+						.domain([-5.4, 10200])
+						.range([0,50]);
+
+			plot_emissions_by_year(2013);
+
+			var animateButton = document.getElementsByClassName("animateButton")[0];
+					animateButton.onclick = plot_all_decades;
+
+			var yearSubmit = document.getElementById("yearSubmit");
+					yearSubmit.onclick = handleClick;
+
+			function handleClick() {
+				debugger;
+				console.log("Success")
+				plot_emissions_by_year(document.getElementById("yearSelect").value)
+				return false;
+			}
+
+			function plot_all_decades(){
+				var year_idx = 0;
+
+				var year_interval = setInterval(function() {
+					plot_emissions_by_year(years[year_idx]);
+					year_idx ++;
+
+					if(year_idx >= years.length){
+							clearInterval(year_interval);
+					}
+				}, 1000)
+			};
+
+			function plot_emissions_by_year(year) {
+				debugger;
+				var emissions = data.filter(function (d) {return d.year === +year;});
+				for(var i=0; i<emissions.length; i+=1){
+					countries_loc[emissions[i].country][+year] = emissions[i].emissions ; 
+				}
+				d3.select("h2")
+					.text("Worldwide Emissions " + year);
+
+				var circles = svg.selectAll("circle")
+						.data(emissions);
+
+				circles.exit().remove(); // remove extra circles
+
+			
+				circles.enter() // add needed circles
+					.append("circle")
+					.attr("cx", function(d) {
+						return countries_loc[d.country]['0'];
+					})
+					.attr("cy", function(d) {
+						return countries_loc[d.country]['1'];
+					})
+					.attr("r", function(d) {
+						return radius(d.emissions);
+					});
+
+					circles.transition() // update the radius of circles
+							.duration(500)
+							.attr("r", function(d) {
+								return radius(d.emissions);
+							});
+				}
+		}
+
+		d3.csv("emissions_stable.csv", function(d) {
+				d["country"] = d["country"];
+				d["year"] = new Date(d["year"]).getUTCFullYear();
+				d["emissions"] = +d["emissions"];
+				return d;
+		}, plot_emissions);
+	}
+
+	</script>
+</head>
+
+<body>
+	<script type="text/javascript">
+  d3.json("world_countries_edited.json", draw)
+  </script>
+  <h2>Worldwide Emissions in 2013</h2>
+	  <button class="animateButton" >Animate Decades</button>
+	  <form class = "yearForm" name="myform">
+	    <input class= "yearSubmit" name="Submit"  type="submit" value="Visualize Year" id = "yearSubmit">
+	    <input class = "yearField" type="number" min=1880 max=2013 id="yearSelect" placeholder="Enter a year to visualize&hellip;">
+	  </form>
+</body>
+</html>
