@@ -23,13 +23,13 @@
 		text-align: center;
 	}
 
-
-	.yearForm {
-		display: block;
-		margin: 0 auto;
-	}
-
-.animateButton {
+	.animateButton {
+		border: 1px dotted #ccc; 
+		background: white; 
+		font-family: monospace; 
+		padding: 10px 20px; 
+		font-size: 14px;  
+		color: blue;
 		display: block;
 		margin: 0 auto;
 	}
@@ -40,12 +40,40 @@
 		text-align: center;
 	}
 
+	.yearSelect {
+		width: 110px;
+	}
+
+	input {
+		border: 1px dotted #ccc; 
+		background: white; 
+		font-family: monospace; 
+		padding: 10px 20px; 
+		font-size: 14px; 
+		margin: 10px 10px 10px 0; 
+		color: red;
+	}
+   input:focus { 
+   	background-color:yellow; 
+   	outline: none;
+   }
 	circle {
 		fill: burlywood;
     stroke: black;
     stroke-width: 0.8;
     opacity: 0.95;
 	}
+	div.tooltip {
+		position: absolute;
+		text-align: center;
+		width: 200px;
+		height: 40px;
+		padding: 2px;
+		font: 12px sans-serif;
+		background: lightsteelblue;
+		pointer-events: none;
+		}
+
 	</style>
 
 	<script type="text/javascript">
@@ -105,18 +133,8 @@
 
 			plot_emissions_by_year(2013);
 
-			var animateButton = document.getElementsByClassName("animateButton")[0];
+			var animateButton = document.getElementById("animateButton");
 					animateButton.onclick = plot_all_decades;
-
-			var yearSubmit = document.getElementById("yearSubmit");
-					yearSubmit.onclick = handleClick;
-
-			function handleClick() {
-				debugger;
-				console.log("Success")
-				plot_emissions_by_year(document.getElementById("yearSelect").value)
-				return false;
-			}
 
 			function plot_all_decades(){
 				var year_idx = 0;
@@ -131,21 +149,47 @@
 				}, 1000)
 			};
 
+			var yearSubmit = document.getElementById("yearSubmit");
+					yearSubmit.onclick = handleClick;
+
+			function handleClick() {
+				plot_emissions_by_year(document.getElementById("yearSelect").value)
+				return false;
+			}
+
 			function plot_emissions_by_year(year) {
-				debugger;
 				var emissions = data.filter(function (d) {return d.year === +year;});
-				for(var i=0; i<emissions.length; i+=1){
-					countries_loc[emissions[i].country][+year] = emissions[i].emissions ; 
-				}
+				
+				debugger;
 				d3.select("h2")
 					.text("Worldwide Emissions " + year);
 
+				var sortable = []
+
+				for(var i=0; i<emissions.length; i+=1){
+					sortable.push([emissions[i].country, emissions[i].emissions]);
+				}
+
+				sortable.sort(function(b, a) { 
+					return a[1] - b[1];
+				})
+
+				for(var i=0; i<emissions.length; i+=1) {
+					emissions[i].rank = sortable.map(function (id) {return id[0];}).indexOf(emissions[i].country);
+				};
+
+				debugger;
+				var div = d3.select("body").append("div")
+							.attr("class", "tooltip")
+							.style("opacity", 0);
+
 				var circles = svg.selectAll("circle")
-						.data(emissions);
+						.data(emissions)
+						
 
 				circles.exit().remove(); // remove extra circles
 
-			
+				
 				circles.enter() // add needed circles
 					.append("circle")
 					.attr("cx", function(d) {
@@ -155,14 +199,30 @@
 						return countries_loc[d.country]['1'];
 					})
 					.attr("r", function(d) {
-						return radius(d.emissions);
-					});
+						return radius(d.emissions)
+					})
+					.on("mouseover", function(d) {
+									div.transition()
+											.duration(200)
+											.style("opacity", 0.9);
+									div.html("Total CO2: " + Math.round(d.emissions) + " (MMmt)" + "<br/>" + "Country: " + d.country + "<br/>" + "rank: " + (d.rank+1))
+											.style("left", (d3.event.pageX) + "px")
+											.style("top", (d3.event.pageY -28) + "px");
+								})
+							.on("mouseout", function(d){
+									div.transition()
+											.duration(500)
+											.style("opacity", 0);
+								});
+					
 
 					circles.transition() // update the radius of circles
 							.duration(500)
 							.attr("r", function(d) {
-								return radius(d.emissions);
+								return radius(d.emissions)
 							});
+
+					return false;
 				}
 		}
 
@@ -181,11 +241,11 @@
 	<script type="text/javascript">
   d3.json("world_countries_edited.json", draw)
   </script>
-  <h2>Worldwide Emissions in 2013</h2>
-	  <button class="animateButton" >Animate Decades</button>
+  <h2>Worldwide Emissions 2013</h2>
+	  <button class="animateButton" id="animateButton" >Animate Decades</button>
 	  <form class = "yearForm" name="myform">
 	    <input class= "yearSubmit" name="Submit"  type="submit" value="Visualize Year" id = "yearSubmit">
-	    <input class = "yearField" type="number" min=1880 max=2013 id="yearSelect" placeholder="Enter a year to visualize&hellip;">
+	    <input class = "yearSelect" type="number" min=1880 max=2013 id="yearSelect" placeholder="Enter a year">
 	  </form>
 </body>
 </html>
