@@ -3,59 +3,281 @@
 <head>
 	<meta charset="utf-8">
     <script src="http://d3js.org/d3.v3.min.js"></script>
-    <style>
-    .axis path, line{
-    	stroke: black;
-    }
+</head>
+<style>
 
-    .line {
-    	float: left;
-    }
+  .axis path{
+  	fill: none;
+  	stroke: black;
+  	stroke-width: 0.4;
+  }
 
-    .line_container {
-    	width: 150px;
-    	height: 20px;
-    }
+  
+  .axis {
+  	font-size: 8pt;
+  }
 
-    .path{
-    	fill: none;
-    }
+  .tick {
+  	stroke: black
+  	stroke-width: 0.6;
+  }
 
-    .key{
-    	float: right;
-    }
+  .line {
+  	fill: none;
+  	float: left;
+  }
 
-    .key_line {
-    	font-size:17px;
-    	width:100%;
-    }
+  path {
+  	fill: none;
+  	stroke: black;
+  	stroke-width: 0.8;
+  }
 
-    .key_square{
-    	height: 10px;
-    	width: 10px;
-    	outline: solid 1px black;
-    	float: left;
-    	margin: 6px 10px 0px 10px;
-    }
+  .line_container {
+  	width: 150px;
+  	height: 20px;
+  }
 
-    #timeseries{
-    	float:left;
-    }
-    </style>
+  .key_line {
+  	font-size:10px;
+  }
 
-    <script type="text/javascript">
+  .key_square {
+  	height: 8px;
+  	width: 8px;
+  	outline: solid 1px black;
+  	float: left;
+   	margin: 4px 10px 0px 6px;
+  }
 
-    function draw(emissions_data) {
-    	"use strict";
+  #timeseries {
+  	float:left;
+  }
 
-    	var margin = 75,
-    			width = 
+  #key > div
+  {
+  	display: inline-block;
+  	text-align: center;
+  }
 
-    }
+  #key 
+  {
+  	text-align: center;
+  	margin: 0px auto;
+  }
+</style>
 
+<script type="text/javascript">
+
+  function draw(emissions_data) {
+  	country_listing = emissions_data;
+  	debugger;
+  	"use strict";
+
+  	var container_dimensions = {width: 1600, height: 800},
+  			margins = {top: 20, right: 50, bottom: 30, left: 100},
+  			chart_dimensions = {width: container_dimensions.width - margins.right - margins.left, height: container_dimensions.height- margins.top  - margins.bottom};
+
+  	var chart = d3.select("#timeseries")
+  			.append("svg")
+  				.attr("width", container_dimensions.width)
+  				.attr("height", container_dimensions.height)
+  			.append("g")
+  				.attr("transform", "translate(" + margins.left + "," + margins.top + ")")
+  				.attr("id", "chart");
+
+  	time_scale = d3.scale.linear()
+  		.domain([1850, 2013])
+  		.range([0, chart_dimensions.width]);
+
+  	emissions_scale = d3.scale.linear()
+  		.domain([0, 34500])
+  		.range([chart_dimensions.height, 0]);
+
+  	var time_axis = d3.svg.axis()
+  			.scale(time_scale)
+  			.tickFormat(d3.format("d"));
+
+  	var count_axis = d3.svg.axis()
+  			.scale(emissions_scale)
+  			.orient("left")
+  			.tickFormat(d3.format("d"));
+
+  	chart.append("g")
+  			.attr("class", "x axis")
+  			.attr("transform", "translate(0, " + chart_dimensions.height +")")
+  			.call(time_axis);
+
+  	chart.append("g")
+  			.attr("class", "y axis")
+  			.call(count_axis);
+
+  	d3.select(".y.axis")
+  		.append("text")
+  			.attr("text-anchor", "middle")
+  			.text("Emissions (in Millions of Metric Tons (Mmt)")
+  			.attr("transform", "rotate(-90, -60, 0) translate(-400)");
+
+  	var key_items = d3.select("#key")
+  		.selectAll("div")									
+			.data(emissions_data)
+			.enter()
+			.append("div")
+				.attr("class", "key_line")
+				.attr("id", function(d) {return d.code});
+
+				key_items.append("div")
+						.attr("id", function(d) {return "key_square" + d.code})
+						.attr("class", "key_square");
+
+				key_items.append("div")
+						.attr("class", "key_label")
+						.text(function(d){return d.code});
+
+  	d3.selectAll(".key_line")
+  			.on("click", get_timeseries_data);
+
+  	max_list = []
+
+  	function get_timeseries_data() {
+  		var id = d3.select(this).attr("id");
+  		var series = d3.select("#"+id+"_path");
+  		var filtered_max = country_listing.filter(function(d){return d.code== id});
+
+  		var max = filtered_max.max;
+  
+  		if (series.empty()) { 
+  				d3.json("emissions_yearly.json", function(data) {
+  							filtered_data = data.filter(function(d){return d.code === id});
+  							var max = d3.json("country_listing.json", function (data) {
+  								return 
+  							})
+  							max_list.push(max)
+  							debugger;
+  							//rescale axis based on maximum value
+  							rescale(max_list)
+  							draw_timeseries(filtered_data, id, max);
+  				})
+  			} else {
+  				d3.json("emissions_yearly.json", function(data) {
+  						filtered_data = data.filter(function(d){return d.code === id});
+  						var max = 0;
+  						for(var i=0; i<filtered_data.length; i+=1) {if (filtered_data[i].	emissions > max) {max = filtered_data[i].emissions}};
+  					var index = max_list.indexOf(max);
+  					max_list.splice(index, 1)
+  				rescale(max_list);
+  				series.remove();
+  			})
+  			}
+  	}
+
+  	function rescale(max_list) {
+  		emissions_scale.domain([0, Math.max.apply(null, max_list)]);
+  		d3.select(".y.axis")
+  				.transition().duration(500).ease("sin-in-out")
+  				.call(count_axis)
+  	};
+
+  	function draw_timeseries(data, id, max) {
+  			var line = d3.svg.line()
+  					.x(function(d){return time_scale(d.year)})
+  					.y(function(d){return emissions_scale(d.emissions)})
+  					.interpolate("linear");
+
+  			var g = d3.select("#chart")
+  					.append("g")
+  					.attr("id", id + "_path")
+  					.attr("class", id.split("_")[1]);
+
+  			g.append("path")
+  					.attr("d", line(data))
+  					.attr("class", "series");
+
+  			var decade_data = data.filter(function(d) {return (d.year % 10 === 0 || d.year === 2013); });
+  		 	g.selectAll("circle")
+  		 		.data(decade_data)
+  		 		.enter()
+  		 		.append("circle")
+  		 				.attr("cx", function(d) {return time_scale(d.year)})
+  		 				.attr("cy", function(d) {return emissions_scale(d.emissions)})
+  		 				.attr("r", 0);
+
+  		 	var enter_duration = 1000;
+  		 		debugger;
+  		 	g.selectAll("circle")
+  		 			.transition()
+  		 			.delay(function(d, i) { return i / data.length * enter_duration; })
+  		 			.attr("r", 3)
+  		 			.each("end", function(d, i){
+  		 					console.log(d);
+  		 					if(i === decade_data.length - 1){
+  		 						add_label(this, d);
+  		 					}
+  		 			});
+
+  		 	function add_label(circle, d) {
+  		 			debugger;
+  		 			d3.select(circle)
+  		 					.transition()
+  		 					.attr("r", 7);
+  		 			g.append("text")
+  		 					.text(d.code)
+  		 					.attr("x", time_scale(d.year) - 20)
+  		 					.attr("y", emissions_scale(d.emissions))
+  		 					.attr("dy", "0.35em")
+  		 					.attr("class", "linelabel")
+  		 					.attr("text-anchor", "middle")
+  		 					.style("opacity", 0)
+  		 					.style("fill", "black")
+  		 					.transition()
+  		 							.style("opacity", 1)
+  		 	}
+
+  		 	g.selectAll("circle")
+  		 			.on("mouseover", function(d){
+  		 						d3.select(this)
+  		 							.transition()
+  		 							.attr("r", 9);
+  		 			})
+
+  		 			.on("mouseout", function(d, i) {
+  		 				if( i !== decade_data.length - 1) {
+  		 						d3.select(this)
+  		 							.transition()
+  		 							.attr("r", 3);
+  		 				}
+  		 			});
+
+
+  		 	g.selectAll("circle")
+  		 		.on("mouseover.tooltip", function(d) {
+  		 				d3.select("text#" + d.code).remove();
+  		 				d3.select("#chart")
+  		 						.append("text")
+  		 						.text(d.year + " : " + d.emissions.toFixed(2) + " Mmt")
+  		 						.attr("x", time_scale(d.year) + 10)
+  		 						.attr("y", emissions_scale(d.emissions) - 15)
+  		 						.attr("id", d.code);
+  		 		});
+
+  		 	g.selectAll("circle")
+  		 		.on("mouseout.tooltip", function(d) {
+  		 			d3.select("text#" + d.code)
+  		 				.transition()
+  		 				.duration(500)
+  		 				.style("opacity", 0)
+  		 				.remove();
+  		 		});
+  	}
+  }
 </script>
+
+
 <body>
-	<div id="timeseries"></div>
-	<div id="key"></div> // key will be country code
+	<div id="timeseries"></div> 
+	<div id="key"></div>
 	<script>
-		d3.csv()
+		d3.json("country_listing.json", draw)
+	</script>
+</body>
+</html>
