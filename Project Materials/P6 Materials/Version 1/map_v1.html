@@ -152,6 +152,9 @@
 			var yearSubmit = document.getElementById("yearSubmit");
 					yearSubmit.onclick = handleClick;
 
+			var yearChange = document.getElementById("yearSelect");
+					yearChange.oninput = handleClick;
+
 			function handleClick() {
 				plot_emissions_by_year(document.getElementById("yearSelect").value)
 				return false;
@@ -162,6 +165,8 @@
 				
 				debugger;
 				d3.select("h2")
+					.transition()
+					.duration(1000)
 					.text("Worldwide Emissions " + year);
 
 				var sortable = []
