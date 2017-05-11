@@ -7,14 +7,17 @@
 <style>
 
   .axis path{
-  	fill: none;
   	stroke: black;
   	stroke-width: 0.4;
   }
 
   
-  .axis {
-  	font-size: 8pt;
+  .y.axis.label {
+  	font-size: 20pt;
+  }
+
+  .x.axis {
+  	font-size: 12pt;
   }
 
   .tick {
@@ -38,44 +41,39 @@
   	height: 20px;
   }
 
+  #key {
+  	position: relative;
+  	transform: translateY(50%);
+  }
+
   .key_line {
-  	font-size:10px;
+  	font-size:20px;
+  	width: 100%;
   }
 
   .key_square {
-  	height: 8px;
-  	width: 8px;
+  	height: 10px;
+  	width: 10px;
   	outline: solid 1px black;
   	float: left;
-   	margin: 4px 10px 0px 6px;
+   	margin: 6px 8px 0px 10px;
   }
 
   #timeseries {
   	float:left;
   }
 
-  #key > div
-  {
-  	display: inline-block;
-  	text-align: center;
-  }
-
-  #key 
-  {
-  	text-align: center;
-  	margin: 0px auto;
-  }
 </style>
 
 <script type="text/javascript">
+var time_scale,
+		emissions_scale;
 
   function draw(emissions_data) {
-  	country_listing = emissions_data;
-  	debugger;
+  	
   	"use strict";
-
-  	var container_dimensions = {width: 1600, height: 800},
-  			margins = {top: 20, right: 50, bottom: 30, left: 100},
+  	var container_dimensions = {width: 1400, height: 800},
+  			margins = {top: 60, right: 10, bottom: 30, left: 100},
   			chart_dimensions = {width: container_dimensions.width - margins.right - margins.left, height: container_dimensions.height- margins.top  - margins.bottom};
 
   	var chart = d3.select("#timeseries")
@@ -91,11 +89,12 @@
   		.range([0, chart_dimensions.width]);
 
   	emissions_scale = d3.scale.linear()
-  		.domain([0, 34500])
+  		.domain([0.0, 10200])
   		.range([chart_dimensions.height, 0]);
 
   	var time_axis = d3.svg.axis()
   			.scale(time_scale)
+  			.ticks(15)
   			.tickFormat(d3.format("d"));
 
   	var count_axis = d3.svg.axis()
@@ -114,8 +113,9 @@
 
   	d3.select(".y.axis")
   		.append("text")
+  			.attr("font-size", "18pt")
   			.attr("text-anchor", "middle")
-  			.text("Emissions (in Millions of Metric Tons (Mmt)")
+  			.text("Emissions in Millions of Metric Tons (Mmt)")
   			.attr("transform", "rotate(-90, -60, 0) translate(-400)");
 
   	var key_items = d3.select("#key")
@@ -137,48 +137,22 @@
   	d3.selectAll(".key_line")
   			.on("click", get_timeseries_data);
 
-  	max_list = []
-
   	function get_timeseries_data() {
   		var id = d3.select(this).attr("id");
   		var series = d3.select("#"+id+"_path");
-  		var filtered_max = country_listing.filter(function(d){return d.code== id});
 
-  		var max = filtered_max.max;
-  
   		if (series.empty()) { 
-  				d3.json("emissions_yearly.json", function(data) {
-  							filtered_data = data.filter(function(d){return d.code === id});
-  							var max = d3.json("country_listing.json", function (data) {
-  								return 
-  							})
-  							max_list.push(max)
-  							debugger;
-  							//rescale axis based on maximum value
-  							rescale(max_list)
-  							draw_timeseries(filtered_data, id, max);
+  				d3.json("emissions_yearly_15.json", function(data) {
+  							var filtered_data = data.filter(function(d){return d.code === id});
+  							draw_timeseries(filtered_data, id);
   				})
   			} else {
-  				d3.json("emissions_yearly.json", function(data) {
-  						filtered_data = data.filter(function(d){return d.code === id});
-  						var max = 0;
-  						for(var i=0; i<filtered_data.length; i+=1) {if (filtered_data[i].	emissions > max) {max = filtered_data[i].emissions}};
-  					var index = max_list.indexOf(max);
-  					max_list.splice(index, 1)
-  				rescale(max_list);
   				series.remove();
-  			})
   			}
-  	}
+  		}
 
-  	function rescale(max_list) {
-  		emissions_scale.domain([0, Math.max.apply(null, max_list)]);
-  		d3.select(".y.axis")
-  				.transition().duration(500).ease("sin-in-out")
-  				.call(count_axis)
-  	};
 
-  	function draw_timeseries(data, id, max) {
+  	function draw_timeseries(data, id) {
   			var line = d3.svg.line()
   					.x(function(d){return time_scale(d.year)})
   					.y(function(d){return emissions_scale(d.emissions)})
@@ -219,25 +193,27 @@
   		 			debugger;
   		 			d3.select(circle)
   		 					.transition()
-  		 					.attr("r", 7);
+  		 					.attr("r", 12);
   		 			g.append("text")
   		 					.text(d.code)
-  		 					.attr("x", time_scale(d.year) - 20)
+  		 					.attr("x", time_scale(d.year))
   		 					.attr("y", emissions_scale(d.emissions))
   		 					.attr("dy", "0.35em")
   		 					.attr("class", "linelabel")
   		 					.attr("text-anchor", "middle")
   		 					.style("opacity", 0)
-  		 					.style("fill", "black")
+  		 					.style("fill", "white")
   		 					.transition()
   		 							.style("opacity", 1)
   		 	}
 
   		 	g.selectAll("circle")
-  		 			.on("mouseover", function(d){
+  		 			.on("mouseover", function(d, i){
+  		 				if( i!== decade_data.length -1) {
   		 						d3.select(this)
   		 							.transition()
   		 							.attr("r", 9);
+  		 						}
   		 			})
 
   		 			.on("mouseout", function(d, i) {
@@ -274,10 +250,11 @@
 
 
 <body>
+	<h2> <center> Emissions over Time <center> </h2>
 	<div id="timeseries"></div> 
 	<div id="key"></div>
 	<script>
-		d3.json("country_listing.json", draw)
+		d3.json("country_listing_15.json", draw)
 	</script>
 </body>
 </html>

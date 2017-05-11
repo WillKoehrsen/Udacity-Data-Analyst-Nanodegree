@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+
+<style>
+  .axis path, line{
+  	stroke: black;
+  	stroke-width: 0.6;
+  }
+  h2 {
+  	font-family: Helvetica;
+  	position: relative;
+  	left: 25%;
+  }
+
+  h3 {
+  	font-weight: normal;
+  }
+
+  .y.axis.label {
+  	font-size: 20pt;
+  }
+
+  .x.axis {
+  	font-size: 12pt;
+  }
+
+  .tick {
+  	stroke: black
+  	stroke-width: 0.6;
+  }
+
+  .line {
+  	fill: none;
+  	float: left;
+  }
+
+  path {
+  	fill: none;
+  	stroke-width: 1;
+  }
+
+  .line_container {
+  	width: 150px;
+  	height: 20px;
+  }
+
+  .key_line {
+  	font-size:20px;
+  	width: 100%;
+  }
+
+  .key_square {
+  	height: 10px;
+  	width: 10px;
+  	outline: solid 1px black;
+  	float: left;
+   	margin: 6px 8px 0px 10px;
+  }
+
+  #tooltip {
+  	font-size: 14pt;
+  }
+
+  #timeseries {
+  	float:left;
+  }
+  #key {
+  	float: left;
+  	position: relative;
+  	transform: translateY(15%);
+  }
+
+</style>
+<link rel="stylesheet" type="text/css" href="style/country_styles.css" />
+
+<script type="text/javascript">
+var time_scale,
+		emissions_scale;
+
+  function draw(country_data) {
+  	
+  	"use strict";
+
+    // set up container to house chart and chart dimensions
+  	var container_dimensions = {width: 1200, height: 600},
+  			margins = {top: 60, right: 10, bottom: 30, left: 100},
+  			chart_dimensions = {width: container_dimensions.width - margins.right - margins.left, height: container_dimensions.height- margins.top  - margins.bottom};
+
+    // set up scales and axes
+  	time_scale = d3.scale.linear()
+  		.domain([1850, 2013])
+  		.range([0, chart_dimensions.width]);
+
+  	emissions_scale = d3.scale.linear()
+  		.domain([0.0, 10200])
+  		.range([chart_dimensions.height, 0]);
+
+  	var time_axis = d3.svg.axis()
+  			.scale(time_scale)
+  			.ticks(15)
+  			.tickFormat(d3.format("d"));
+
+  	var count_axis = d3.svg.axis()
+  			.scale(emissions_scale)
+  			.orient("left")
+  			.tickFormat(d3.format("d"));
+
+    // create chart 
+    var g = d3.select("#timeseries")
+      .append("svg")
+        .attr("width", container_dimensions.width)
+        .attr("height", container_dimensions.height)
+      .append("g")
+        .attr("transform", "translate(" + margins.left + "," + margins.top + ")")
+        .attr("id", "chart");
+          
+    // add axes to chart 
+  	g.append("g")
+  		.attr("class", "x axis")
+  		.attr("transform", "translate(0, " + chart_dimensions.height +")")
+  		.call(time_axis);
+
+  	g.append("g")
+  		.attr("class", "y axis")
+  		.call(count_axis);
+
+    // y-axis label
+  	d3.select(".y.axis")
+  		.append("text")
+  			.attr("font-size", "14pt")
+  			.attr("font-family", "Arial")
+  			.attr("text-anchor", "middle")
+  			.text("Emissions (Millions of Metric Tons of CO2)")
+  			.attr("transform", "rotate(-90, -60, 0) translate(-300)");
+
+    // countries with boxes and labels
+  	var key_items = d3.select("#key")
+  		.selectAll("div")									
+			.data(country_data)
+			.enter()
+			.append("div")
+				.attr("class", "key_line")
+				.attr("id", function(d) {return d.code+"_key"});
+
+		key_items.append("div")
+				.attr("id", function(d) {return "key_square_" + d.code})
+				.attr("class", function(d) {return "key_square " + d.code});
+
+		key_items.append("div")
+				.attr("class", "key_label")
+				.text(function(d){return d.country});
+
+  	d3.selectAll(".key_line")
+  			.on("click", get_timeseries_data);
+
+  	function get_timeseries_data(d, i) {
+  		// retrieve country code of item selected
+      var id = d.code;
+      console.log(id)
+      // check for time series for selected country code
+  		var series = d3.select("#"+id);
+
+  		if (series.empty()) { 
+  				d3.json("data/emissions_yearly_15.json", function(data) {
+  						var filtered_data = data.filter(function(d){return d.code === id});
+  						draw_timeseries(filtered_data, id);
+  				})
+  			} else {
+  				  series.remove();
+  			}
+  	}
+
+  	function draw_timeseries(emissions_data, id) {
+
+        // draw series with emissions yearly data
+  			var line = d3.svg.line()
+  					.x(function(d){return time_scale(d.year)})
+  					.y(function(d){return emissions_scale(d.emissions)})
+  					.interpolate("linear");
+
+        // series is appended as group element to chart
+  			var g = d3.select("#chart")
+  					.append("g")
+  					.attr("id", id)
+  					.attr("class", id);
+
+        // call line function and add to group element on chart
+  			g.append("path")
+  					.attr("d", line(emissions_data))
+
+        // delay for drawing circles in on top of line
+        var enter_duration = 1000;
+
+        // only draw circles every ten years and for most recent year
+  			var decade_data = emissions_data.filter(function(d) {return (d.year % 10 === 0 || d.year === 2013); });
+  			debugger;
+  			// add in all circles
+  		 	g.selectAll("circle")
+  		 			.data(decade_data)
+  		 		 	.enter()
+  		 		 	.append("circle")
+  		 				.attr("cx", function(d) {return time_scale(d.year)})
+  		 				.attr("cy", function(d) {return emissions_scale(d.emissions)})
+  		 				.attr("r", 0); //draw in with initial radius of 0 to allow for transition
+
+  		 	// transition the circle radius in visible
+  		 	g.selectAll("circle")
+  		 			.transition()
+  		 			.delay(function(d, i) { return i / decade_data.length * enter_duration; })
+  		 			.attr("r", 3)
+  		 			.each("end", function(d, i){
+  		 					if (i === decade_data.length - 1){
+  		 							add_label(this, d); // add label to last circle only
+  		 					}
+  		 			});
+
+  		 // add mouseover increase in radius (and return on mouseout)
+  		 g.selectAll("circle")
+  		 		.on("mouseover", function(d){
+  		 					d3.select(this)
+  		 						.transition()
+  		 						.attr("r", 9);
+  		 			})
+  		 			.on("mouseout", function(d, i) {
+  		 				if( i !== decade_data.length - 1) {
+  		 						d3.select(this)
+  		 							.transition()
+  		 							.attr("r", 3);
+  		 				}
+  		 			});
+
+  		 	// add mouseover tooltip (and remove on mouseout)
+  		 	g.selectAll("circle")
+  		 		.on("mouseover.tooltip", function(d, i) {
+  		 				d3.select("text." + d.code).remove();
+  		 				if(i < 16)	{
+  		 					d3.select("#chart")
+  		 						.append("text")
+  		 						.text(d.emissions.toFixed(2) + " Mmt")
+  		 						.attr("x", time_scale(d.year) - 40)
+  		 						.attr("y", emissions_scale(d.emissions) - 15)
+  		 						.attr("class", d.code)
+  		 						.attr("id", "tooltip");
+  		 				} else {
+  		 					d3.select("#chart")
+  		 						.append("text")
+  		 						.text(d.emissions.toFixed(2) + " Mmt")
+  		 						.attr("x", time_scale(d.year) - 110)
+  		 						.attr("y", emissions_scale(d.emissions) - 15)
+  		 						.attr("class", d.code)
+  		 						.attr("id", "tooltip");
+  		 					}
+
+  		 		})
+  		 		.on("mouseout.tooltip", function(d) {
+  		 			d3.select("text." + d.code)
+  		 				.transition()
+  		 				.duration(500)
+  		 				.style("opacity", 0)
+  		 				.remove();
+  		 		});
+  		 	}
+
+  		 	// draw label for last point in series
+  		 	function add_label(circle, d, i) {
+  		 			d3.select(circle)
+  		 					.transition()
+  		 					.attr("r", 9); // first increase radius
+
+  		 			// text with country code
+  		 			d3.select('#' + d.code)
+  		 					.append("text")
+  		 					.text(d.code)
+  		 					.attr("text-anchor", "middle")
+  		 					.style("dominant-baseline", "central")
+  		 					.attr("x", time_scale(d.year) - 30)
+  		 					.attr("y", emissions_scale(d.emissions))
+  		 					.attr("class", "linelabel")
+  		 					.style("opacity", 0)
+  		 					.transition()
+  		 							.style("opacity", 1)
+  		 	}
+  	}
+</script>
+
+</head>
+<body>
+	<h2> CO2 Emissions by Country </h2>
+	<div id="timeseries"></div> 
+	<div id="key"> 
+		<h3> Top 15 Emitters in 2013 </h3>
+	</div>
+	<script>
+		d3.json("data/country_listing_15.json", draw)
+	</script>
+</body>
+</html>

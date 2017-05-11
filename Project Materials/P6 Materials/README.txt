@@ -1,0 +1,161 @@
+Global Emissions Explorer with d3.js
+Udacity Data Analysis P6
+
+(Note: The final version folder contains the complete working visualization. Versions 1 and 2 are 
+in the associated folders. The old data folder contains the initial dataset and different stages of 
+the data that were used along with the Jupyter Notebook used to wrangle the data with Python.) 
+
+Summary
+
+	The Global Emissions Explorer is a web application designed to allow readers to understand and 
+contextualize carbon dioxide emissions data. The exploration tool consists of two parts: a world 
+map allows readers to visualize emissions of all countries at once, with circles on each country 
+sized according to the CO2 emissions for that country in a given year, and a chart allows readers 
+to see how the emissions levels from the top 15 emitting countries have changed since 1850. All 
+of the data in the visualization is available from the Climate Analysis Indicators Tool created by 
+the World Resources Institute, but the data in its raw form can be difficult to interpret. It is my 
+hope that this visualization will allow readers to observe the extent to which emissions have risen 
+since 1850 as well as make comparisons between countries to determine which nations have the 
+most progress to make towards developing a sustainable society. 
+Design
+
+	The primary design objectives I always had in mind were to allow for quick comparisons both 
+between countries and over the years and to keep the charts relatively clutter-free to allow for 
+rapid comprehension. Initially, for Version 1 of the project, I created only the world map, but I 
+decided to add the chart after receiving feedback asking for an easier method to compare 
+countries across the years. The line graph allows readers to see multiple countries at once, and 
+observe how the countries have changed both in terms of absolute carbon dioxide emissions, and 
+relative to one another. Version 2 of the project added in the chart with full functionality, but 
+limited styling. At first, I added in every single country (about 160 were in the data) to the line 
+graph, but after receiving feedback that most of the countries were not major contributors to 
+global CO2 emissions, I decided that only showing the top 15 countries from 2013 would be 
+appropriate. My choice of 2013 was because that was the most recent year in the dataset and 
+indicates which countries have the most work to do in terms of reducing emissions. Examining 
+the data as part of my preliminary observations, I found it interesting how the top 15 countries 
+now have changed over the years (notably China and the United States) and therefore decided to 
+only show these countries. One of the toughest design decisions was the scale for the y-axis of 
+the chart. I initially had all the countries available to plot, as well as the world total. However, 
+the world total dwarfed all but the top 2 countries, and changing to a log scale elicited comments 
+that the chart was now difficult to understand. I realize that a log scale might have been the 
+appropriate solution, but the general public often does not intuitively understand the implications 
+of a non-linear scale. Subsequently, I decided to remove the world total and change the scale to a 
+simple linear one. Even though most of the countries are still dwarfed by the US and China, I 
+believe that this was the design decision that best communicated the trends in the data I was 
+trying to underscore. I also initially thought about sizing the countries themselves on the world 
+map by emissions, but I decided that simply putting circles on the countries and then having the 
+circles dynamically change was the best way to emphasize the increase in emissions since 1850. 
+	The interactive elements that I included were dictated primarily by feedback asking to be 
+able to make comparisons and for finer detail. I opted against including a radius scale on the map 
+in favor of tooltips that appear when a reader mouses over a countries’ circle. The tooltip 
+includes the actual emissions number, the country (in case readers are not up to date on their 
+geography), and the global rank. I personally find Millions of Metric Tons of carbon dioxide a 
+difficult measure to understand, which is why I wanted to size circles to allow for relative 
+comparisons both temporally and globally. I included the option to animate over the decades 
+because I wanted to show how much emissions have increased from 1850 to 2010. I also allow 
+users to select any specific year if they want more details. By showing both the overall trend and 
+allowing for finer examination of the details, I think my visualization will satisfy readers with 
+widely varying levels of interest. For the line graph, I added interactivity in the form of selecting 
+countries. As explained, I only allowed the user to select from among the top 15 carbon dioxide 
+emitting countries in order to limit clutter and because those countries contribute an 
+overwhelming share to the global total. I also included tooltips for every decade (and 2013) on 
+the chart in case users want a higher level of detail. 
+	Styling has never been my strong point, and my objective for this project was to not let 
+styling get in the way of the displays. I wanted to try and stick to simple colors and not distract 
+with too many aesthetic elements. For the initial welcome page and the about page, I included 
+background images which have received mixed comments. On this aspect, I am willing to 
+concede and if I become a professional data analyst, I hope that I will be working for a company 
+with skilled designers! 
+Feedback
+	
+	The initial feedback I received when discussing my idea was to keep the visuals simple and do 
+not overload them with information. I had been planning to design a comprehensive tool that 
+incorporated socioeconomic data, but most people I talked to said that would detract from the 
+main stated goal of my project, which was to allow readers to observing changing carbon dioxide 
+emissions. Additional data could be helpful in some contexts, but curious readers would have 
+plenty of other sources to learn more about each country and I was told to keep my focus on the 
+emissions. After these discussions, I decided the most sensible course was to concentrate on 
+clearly displaying the emissions data. I settled on the concept of creating a world map with 
+circles sized by the CO2 emissions of each country. Version 1 was the implementation of this 
+idea and could stand on its own as a useful tool for grasping the overall emission trends (the 
+large picture). However, I received constructive criticism telling me that comparing countries for 
+a given year based solely on the map was difficult because the size of the circles could not be 
+differentiated. Other feedback for Version 1 regarded the styling of the map, and the misplaced 
+location of some of the country circles which was due to the path.centroid method I was using to 
+calculated the best location for the country data. There were also some minor functionality issues 
+that would make the tool easier to use that I needed to correct for subsequent versions. I was 
+asked about including a scale for the radius of the bubbles, but decided against it because users 
+could mouse over the country bubble and see the exact quantity of CO2 emitted (in millions of 
+metric tons). Based on the feedback for Version 1, I decided to create the chart that showed the 
+emissions over the span of time as a line graph. 
+      I made the graph with basic functionally for Version 2 and asked for additional feedback. 
+The second time through the feedback and improvement process, the criticism mainly focused on 
+aesthetics. I am not the most adept designer, and I expected that I would receive plenty of 
+constructive criticism regarding style choices. Most of the changes were minor, but they made a 
+large difference not only in appearance, but in the clarity of the visualizations. The most 
+significant change I implemented based on feedback for Version 2 was to limit the number of 
+countries that I included in the chart. I had initially displayed all 160 countries, but changed the 
+display after hearing that most of the countries were not major contributors and including all of 
+the countries as options cluttered the appearance of the graph. I had also originally included the 
+world total CO2 emissions, but this required readjusting the scale and the majority of countries 
+did not even register with the y-axis scaled based on the maximum world total. I experimented 
+with using a logarithmic y-axis, but again, feedback changed my mind as people said that a log 
+axis can be difficult to interpret. For the final version of the chart, I included only the top 15 
+emitting countries in 2013 and settled on a linear scale. Considering the line graph, I must agree 
+with all the feedback that these changes resulted in a cleaner and more usable visual. 
+      The final visualization has attracted plenty of feedback that I will look to incorporate in a 
+future upgrade. Some people do indeed want to see socioeconomic data included, while others 
+think it should remain separate. Perhaps the best option would be to have a selection panel that 
+would allow readers to see the socioeconomic data they want. I would have to make sure that it 
+is non-intrusive but I do think that it can add a lot of needed context to the visuals (for example, 
+seeing how as a country gets wealthier, the emissions of that country increase, or how emissions 
+fell for some countries in the global recession of 2008).  I have also received comments 
+regarding the number of countries I choose to include in the chart, and maybe a dynamically 
+scaled y-axis would be the proper choice, or I could have the default scale as linear, but allow 
+users to select logarithmic if they are comfortable interpreting a log scale. Moreover, based on 
+the responses from users, I think it might be helpful to have a table available for those who want 
+to view all the data in detail.  It would not be as quick to understand as the visuals, but for those 
+who were interested in learning more, a table would allow for a thorough examination of all the 
+carbon dioxide emissions data. Finally, I received many comments about the styling, and on that 
+issue, I agree that I could benefit from hiring a designer, but most readers said that the styling 
+was appropriate for the displays and did not distract from the data. 
+
+Resources
+
+The data itself is from http://www.wri.org/resources/data-sets/cait-historical-emissions-data-
+countries-us-states-unfccc
+
+The chart display was adapted from an example in the book Getting Started with D3 by Mike 
+Dewar that is available for at http://shop.oreilly.com/product/0636920025429.do
+
+The rest of the links presented below form a nearly comprehensive list of resources that I utilized 
+over the course of this project. There are many additional Stack Overflow questions that were of 
+vital assistance to me over the course of this project but that I did not have the chance to 
+bookmark. I hope these anonymous contributors to Stack Overflow and other online mediums 
+know the positive impact of their contributions for data science and for all developers!
+
+https://bl.ocks.org/mbostock/29cddc0006f8b98eff12e60dd08f59a7
+http://www.wri.org/resources/data-sets/cait-historical-emissions-data-countries-us-states-unfccc
+http://bl.ocks.org/abenrob/c4ac3d581a7b16ff5f2f
+http://www.wri.org/blog/2017/04/interactive-chart-explains-worlds-top-10-emitters-and-how-
+theyve-changed
+http://stackoverflow.com/questions/7346827/how-to-find-the-array-index-with-a-value
+http://stackoverflow.com/questions/1069666/sorting-javascript-object-by-property-value
+http://bl.ocks.org/d3noob/10633704
+https://classroom.udacity.com/nanodegrees/nd002/parts/00213454010/modules/31842386327546
+1/lessons/3184238632239847/concepts/31814787270923
+http://jsonviewer.stack.hu/
+http://www.d3noob.org/2013/02/update-d3js-data-dynamically.html
+http://stackoverflow.com/questions/11832914/round-to-at-most-2-decimal-places-only-if-
+necessary
+http://stackoverflow.com/questions/5767325/how-to-remove-a-particular-element-from-an-
+array-in-javascript
+http://www.yourhtmlsource.com/stylesheets/csslayout.html
+https://www.w3schools.com/css/css_font.asp
+http://www.quackit.com/css/css_color_codes.cfm
+http://examples.oreilly.com/0636920025429/mikedewar-getting_started_with_d3-
+bdfc34e/visualisations/subway_wait_assessment_UI.html
+https://bl.ocks.org/d3noob/c506ac45617cf9ed39337f99f8511218
+https://jsfiddle.net/wb8u02kL/2/
+http://shop.oreilly.com/product/0636920025429.do
+http://stackoverflow.com/questions/4810927/how-to-go-up-a-level-in-the-src-path-of-a-url-in-
+html
