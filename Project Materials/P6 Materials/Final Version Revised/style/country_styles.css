@@ -1,0 +1,26 @@
+.CHN, .USA, .IND {
+    stroke:red;
+    fill:red;
+    background-color:red;
+}
+.RUS, .JPN, .DEU {
+    stroke:gold;
+    fill:gold;
+    background-color:gold;
+}
+.IRN, .KOR, .CAN {
+    stroke:orange;
+    fill:orange;
+    background-color:orange;
+}
+.SAU, .BRA, .MEX {
+    stroke:blue;
+    fill:blue;
+    background-color:blue;
+}
+.GBR, .IDN, .ZAF {
+    stroke:green;
+    fill:green;
+    background-color:green;
+}
+
