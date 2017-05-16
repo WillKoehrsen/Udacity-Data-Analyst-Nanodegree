@@ -9,13 +9,27 @@
 
     <style>
 
+    body{
+    	width: 1560px;
+    }
+
+    .body {
+    	font-family: Arial;
+    }
+
     .title {
     	margin-left: auto;
     	margin-right: auto;
     	text-align: center;
     }
-    .button_holder {
+    .button_holder_home {
     	float: left;
+    	width: 0px;
+    	text-align: center;
+    }
+
+     .button_holder_chart {
+    	float: right;
     	width: 0px;
     	text-align: center;
     }
@@ -29,9 +43,7 @@
 		  background-image: -ms-linear-gradient(top, #d93934, #b8342b);
 		  background-image: -o-linear-gradient(top, #d93934, #b8342b);
 		  background-image: linear-gradient(to bottom, #d93934, #b8342b);
-		  -webkit-border-radius: 28;
-		  -moz-border-radius: 28;
-		  border-radius: 28px;
+		  border-radius: 12px;
 		  font-family: Arial;
 		  color: white;
 		  font-size: 20px;
@@ -66,11 +78,12 @@
     
     .animateButton {
         border: 1px dotted #ccc;
-        background: white;
+        background: #f5f605;
         font-family: monospace;
         padding: 10px 20px;
-        font-size: 14px;
-        color: ;
+        font-size: 16px;
+        font-weight: bold;
+        color: black ;
         margin: 0 auto;
         width: 180px;
     }
@@ -80,23 +93,20 @@
     }
     
     .yearSelect {
-        width: 120px;
-        color: red;
-        transform: translateX(2.5%);
+        width: 130px;
     }
     
     input {
         border: 1px dotted #ccc;
-        background: white;
-        font-family: monospace;
+        background: #f5f605;
         padding: 10px 20px;
-        font-size: 14px;
-        margin: 10px 10px 10px 0;
-        color: red;
+        font-family: monospace;
+        font-size: 16px;
+        margin: 4px auto;
     }
     
     input:focus {
-        background-color: lightblue;
+        background-color: orange;
         outline: none;
         border: 1px #ccc;
         font-weight: bold;
@@ -163,7 +173,7 @@
             .append("svg")
             .attr("width", width + margin)
             .attr("height", height + margin)
-            .attr("transform", "translate(60,20)")
+            .attr("transform", "translate(50,20)")
             .append("g")
             .attr("class", "map");
 
@@ -258,7 +268,7 @@
            			.shapePadding(15)
            			.labelOffset(20)
            			.labels(["0", "2500", "5000", "7500", "10000"])
-           			.title("Emission Size Scale (in Mmt of CO2)")
+           			.title("Emission Scale (in Mmt of CO2)")
            			.orient("horizontal");
 
            	legend.select(".legendSize")
@@ -301,6 +311,8 @@
             // function for plotting emissions in any year in data
             // used for animating decades for user input of a year
             function plot_emissions_by_year(year) {
+            	if (year.toString().length < 4) {}
+            	else {
                 if (year < 1850 || year > 2013) {
                     d3.select("h2")
                         .text("Data encompasses years 1850-2013")
@@ -404,6 +416,7 @@
                     }
                   }
 
+              }
                   
     
             } // end of plot_emissions_by_year
@@ -422,11 +435,14 @@
 </head>
 
 <body>
-	<div class="button_holder"> 
+	<div class="button_holder_home"> 
 	  <a href='world_index.html' class="button">Home</a> 
 	</div>
+	<div class="button_holder_chart"> 
+	  <a href='chart.html' class="button">Chart</a> 
+	</div>
 	<div class="title">
-	  <h1> Worldwide CO2 Emissions
+	  <h1> Worldwide CO2 Increases 1850-2013
 	  </h1>
 	</div>
     
