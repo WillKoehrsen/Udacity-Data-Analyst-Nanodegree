@@ -6,74 +6,73 @@
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://d3js.org/d3.geo.projection.v0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/1.13.0/d3-legend.min.js"></script>
-
     <style>
-
-    body{
-    	width: 1560px;
+    body {
+        width: 1560px;
     }
-
+    
     .body {
-    	font-family: Arial;
+        font-family: Arial;
     }
-
+    
     .title {
-    	margin-left: auto;
-    	margin-right: auto;
-    	text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
     }
+    
     .button_holder_home {
-    	float: left;
-    	width: 0px;
-    	text-align: center;
+        float: left;
+        width: 0px;
+        text-align: center;
     }
-
-     .button_holder_chart {
-    	float: right;
-    	width: 0px;
-    	text-align: center;
+    
+    .button_holder_chart {
+        float: right;
+        width: 0px;
+        text-align: center;
     }
-
+    
     .button {
-    	float: left;
-		  width: 60px;
-		  background: #d93934;
-		  background-image: -webkit-linear-gradient(top, #d93934, #b8342b);
-		  background-image: -moz-linear-gradient(top, #d93934, #b8342b);
-		  background-image: -ms-linear-gradient(top, #d93934, #b8342b);
-		  background-image: -o-linear-gradient(top, #d93934, #b8342b);
-		  background-image: linear-gradient(to bottom, #d93934, #b8342b);
-		  border-radius: 12px;
-		  font-family: Arial;
-		  color: white;
-		  font-size: 20px;
-		  padding: 10px 20px 10px 20px;
-		  text-decoration: none;
-		}
-
-	.button:hover {
-	  background: #faca3c;
-	  background-image: -webkit-linear-gradient(top, #faca3c, #fab43c);
-	  background-image: -moz-linear-gradient(top, #faca3c, #fab43c);
-	  background-image: -ms-linear-gradient(top, #faca3c, #fab43c);
-	  background-image: -o-linear-gradient(top, #faca3c, #fab43c);
-	  background-image: linear-gradient(to bottom, #faca3c, #fab43c);
-	  text-decoration: none;
-	}
-
+        float: left;
+        width: 60px;
+        background: #d93934;
+        background-image: -webkit-linear-gradient(top, #d93934, #b8342b);
+        background-image: -moz-linear-gradient(top, #d93934, #b8342b);
+        background-image: -ms-linear-gradient(top, #d93934, #b8342b);
+        background-image: -o-linear-gradient(top, #d93934, #b8342b);
+        background-image: linear-gradient(to bottom, #d93934, #b8342b);
+        border-radius: 12px;
+        font-family: Arial;
+        color: white;
+        font-size: 20px;
+        padding: 10px 20px 10px 20px;
+        text-decoration: none;
+    }
+    
+    .button:hover {
+        background: #faca3c;
+        background-image: -webkit-linear-gradient(top, #faca3c, #fab43c);
+        background-image: -moz-linear-gradient(top, #faca3c, #fab43c);
+        background-image: -ms-linear-gradient(top, #faca3c, #fab43c);
+        background-image: -o-linear-gradient(top, #faca3c, #fab43c);
+        background-image: linear-gradient(to bottom, #faca3c, #fab43c);
+        text-decoration: none;
+    }
+    
     h1 {
-    	display: inline;
+        display: inline;
         font-family: Helvetica;
         text-align: center;
         vertical-align: middle;
     }
     
     h2 {
-    	margin: 12px;
-    	color: darkblue;
-      font-family: Georgia;
-      font-size: 32px;
-      text-align: center;
+        margin: 12px;
+        color: darkblue;
+        font-family: Georgia;
+        font-size: 32px;
+        text-align: center;
     }
     
     .animateButton {
@@ -83,13 +82,13 @@
         padding: 10px 20px;
         font-size: 16px;
         font-weight: bold;
-        color: black ;
+        color: black;
         margin: 0 auto;
         width: 180px;
     }
     
     .select {
-      text-align: center;
+        text-align: center;
     }
     
     .yearSelect {
@@ -129,35 +128,36 @@
         pointer-events: none;
         border-radius: 6px;
     }
-
-  .select circle {
-  	fill: none;
-  	stroke: #ccc;
-	}
-
-	.legend text {
-  	fill: #777;
-  	font: 10px sans-serif;
-  	text-anchor: middle;
-	}
-
-	.input {
-    	float: left;
-    	transform: translate(550px, 40px);
+    
+    .select circle {
+        fill: none;
+        stroke: #ccc;
     }
-	.legends {
-		float: left;
-		transform: translateX(90%);
-	}
-  .legendOrdinal .legendTitle{
-  	transform: translate(-20px, 5px);
-  }
-
-  .legendSize .legendTitle {
-  	transform: translate(120px,-35px);
-  }
-</style>
-
+    
+    .legend text {
+        fill: #777;
+        font: 10px sans-serif;
+        text-anchor: middle;
+    }
+    
+    .input {
+        float: left;
+        transform: translate(550px, 40px);
+    }
+    
+    .legends {
+        float: left;
+        transform: translateX(90%);
+    }
+    
+    .legendOrdinal .legendTitle {
+        transform: translate(-20px, 5px);
+    }
+    
+    .legendSize .legendTitle {
+        transform: translate(120px, -35px);
+    }
+    </style>
     <script type="text/javascript">
     // main function takes in geoJSON data and draws map
     function draw(geographic_data) {
@@ -230,49 +230,49 @@
                 .domain([-5.4, 10200])
                 .range([1, 55]);
 
-           	// create color scale for color legend
-           	var color = d3.scale.ordinal()
-           			.domain(["1-10", "11-20", "21-30", "31-40", "40+"])
-           			.range(["red", "yellow", "orange", "blue", "green"]);
+            // create color scale for color legend
+            var color = d3.scale.ordinal()
+                .domain(["1-10", "11-20", "21-30", "31-40", "40+"])
+                .range(["red", "yellow", "orange", "blue", "green"]);
 
-       	 		// legend container
+            // legend container
             var legend = d3.select(".select")
-            		.append("svg")
-            		.attr("class", "legends")
-            		.attr("width", "680px")
-            		.attr("height", "180px");
+                .append("svg")
+                .attr("class", "legends")
+                .attr("width", "680px")
+                .attr("height", "180px");
 
             // color legend
-           	legend.append("g")
-           			.attr("class", "legendOrdinal")
-           			.attr("transform", "translate(20,20)");
+            legend.append("g")
+                .attr("class", "legendOrdinal")
+                .attr("transform", "translate(20,20)");
 
-           	var legend_color = d3.legend.color()
-           			.shape("path", d3.svg.symbol().type("circle").size(100)())
-           			.shapePadding(15)
-           			.labelOffset(20)
-           			.title("Country Emission Rank")
-           			.scale(color);
+            var legend_color = d3.legend.color()
+                .shape("path", d3.svg.symbol().type("circle").size(100)())
+                .shapePadding(15)
+                .labelOffset(20)
+                .title("Country Emission Rank")
+                .scale(color);
 
-           	legend.select(".legendOrdinal")
-           			.call(legend_color);
+            legend.select(".legendOrdinal")
+                .call(legend_color);
 
-           	// legend for sizing of circles
-           	legend.append("g")
-           		.attr("class", "legendSize")
-           		.attr("transform", "translate(160, 60)");
+            // legend for sizing of circles
+            legend.append("g")
+                .attr("class", "legendSize")
+                .attr("transform", "translate(160, 60)");
 
-           	var legend_size = d3.legend.size()
-           			.scale(radius)
-           			.shape("circle")
-           			.shapePadding(15)
-           			.labelOffset(20)
-           			.labels(["0", "2500", "5000", "7500", "10000"])
-           			.title("Emission Scale (in Mmt of CO2)")
-           			.orient("horizontal");
+            var legend_size = d3.legend.size()
+                .scale(radius)
+                .shape("circle")
+                .shapePadding(15)
+                .labelOffset(20)
+                .labels(["0", "2500", "5000", "7500", "10000"])
+                .title("Emission Scale (in Mmt of CO2)")
+                .orient("horizontal");
 
-           	legend.select(".legendSize")
-           			.call(legend_size);
+            legend.select(".legendSize")
+                .call(legend_size);
 
             // initial map will display emissions from 2013 (most recent year)
             plot_emissions_by_year(2013);
@@ -311,114 +311,111 @@
             // function for plotting emissions in any year in data
             // used for animating decades for user input of a year
             function plot_emissions_by_year(year) {
-            	if (year.toString().length < 4) {}
-            	else {
-                if (year < 1850 || year > 2013) {
-                    d3.select("h2")
-                        .text("Data encompasses years 1850-2013")
-                } else {
-                    d3.select("h2")
-                        .transition()
-                        .duration(1000)
-                        .text(year + " Emissions");
-                };
-
-                // filter data by year parameter passed to function
-                var emissions = data.filter(function(d) {
-                    return d.year === +year;
-                });
-
-               
-                var sortable = []
-
-                // sorting countries by emissions in year for tooltip and coloring
-                for (var i = 0; i < emissions.length; i += 1) {
-                    sortable.push([emissions[i].country, emissions[i].emissions]);
-                }
-
-                sortable.sort(function(b, a) {
-                    return a[1] - b[1];
-                })
-
-                for (var i = 0; i < emissions.length; i += 1) {
-                    emissions[i].rank = 1 + sortable.map(function(id) {
-                        return id[0];
-                    }).indexOf(emissions[i].country);
-                };
-                
-                // add in tooltip
-                var div = d3.select("body").append("div")
-                    .attr("class", "tooltip")
-                    .style("opacity", 0);
-
-                var circles = svg.selectAll("circle")
-                    .data(emissions)
-
-                // remove extra circles
-                circles.exit().remove();
-
-                // add needed circles
-                // add in tooltip with emissions, country, rank
-                circles.enter()
-                    .append("circle")
-                    .attr("cx", function(d) {
-                        return countries_loc[d.country]['0'];
-                    })
-                    .attr("cy", function(d) {
-                        return countries_loc[d.country]['1'];
-                    })
-                    .attr("r", function(d) {
-                        return radius(d.emissions)
-                    })
-                    .style("fill", function(d) {
-                    	return color_by_rank(d.rank)
-                    	debugger;
-                    })
-                    .on("mouseover", function(d) {
-                        div.transition()
-                            .duration(200)
-                            .style("opacity", 0.9);
-                        div.html("Total CO2: " + Math.round(d.emissions) + " (MMt)" + "<br/>" + "Country: " + d.country + "<br/>" + "Rank: " + d.rank)
-                            .style("left", (d3.event.pageX) + "px")
-                            .style("top", (d3.event.pageY - 28) + "px");
-                    })
-                    .on("mouseout", function(d) {
-                        div.transition()
-                            .duration(500)
-                            .style("opacity", 0);
-                    });
-
-
-                // update the radius of existing circles
-                circles.transition()
-                    .duration(500)
-                    .attr("r", function(d) {
-                        return radius(d.emissions)
-                    })
-                    .style("fill", function(d) {
-                    	return color_by_rank(d.rank)
-                    });
-
-
-
-                // function to determine color of emission circle
-                function color_by_rank(rank) {
-                    if ( 1<= rank && rank <= 10) {
-                        return "red";
-                    } else if (11 <= +rank && rank <= 20) {
-                        return "yellow";
-                    } else if  (21 <= +rank && rank <= 30)  {
-                    	return "orange";
-                    } else if (31 <= +rank && rank <= 40) {
-                    	return "green"
+                if (year.toString().length < 4) {} else {
+                    if (year < 1850 || year > 2013) {
+                        d3.select("h2")
+                            .text("Data encompasses years 1850-2013")
                     } else {
-                    	return "blue";
-                    }
-                  }
+                        d3.select("h2")
+                            .transition()
+                            .duration(1000)
+                            .text(year + " Emissions");
+                    };
 
-              }
-                  
-    
+                    // filter data by year parameter passed to function
+                    var emissions = data.filter(function(d) {
+                        return d.year === +year;
+                    });
+
+
+                    var sortable = []
+
+                    // sorting countries by emissions in year for tooltip and coloring
+                    for (var i = 0; i < emissions.length; i += 1) {
+                        sortable.push([emissions[i].country, emissions[i].emissions]);
+                    }
+
+                    sortable.sort(function(b, a) {
+                        return a[1] - b[1];
+                    })
+
+                    for (var i = 0; i < emissions.length; i += 1) {
+                        emissions[i].rank = 1 + sortable.map(function(id) {
+                            return id[0];
+                        }).indexOf(emissions[i].country);
+                    };
+
+                    // add in tooltip
+                    var div = d3.select("body").append("div")
+                        .attr("class", "tooltip")
+                        .style("opacity", 0);
+
+                    var circles = svg.selectAll("circle")
+                        .data(emissions)
+
+                    // remove extra circles
+                    circles.exit().remove();
+
+                    // add needed circles
+                    // add in tooltip with emissions, country, rank
+                    circles.enter()
+                        .append("circle")
+                        .attr("cx", function(d) {
+                            return countries_loc[d.country]['0'];
+                        })
+                        .attr("cy", function(d) {
+                            return countries_loc[d.country]['1'];
+                        })
+                        .attr("r", function(d) {
+                            return radius(d.emissions)
+                        })
+                        .style("fill", function(d) {
+                            return color_by_rank(d.rank)
+                            debugger;
+                        })
+                        .on("mouseover", function(d) {
+                            div.transition()
+                                .duration(200)
+                                .style("opacity", 0.9);
+                            div.html("Total CO2: " + Math.round(d.emissions) + " (MMt)" + "<br/>" + "Country: " + d.country + "<br/>" + "Rank: " + d.rank)
+                                .style("left", (d3.event.pageX) + "px")
+                                .style("top", (d3.event.pageY - 28) + "px");
+                        })
+                        .on("mouseout", function(d) {
+                            div.transition()
+                                .duration(500)
+                                .style("opacity", 0);
+                        });
+
+
+                    // update the radius of existing circles
+                    circles.transition()
+                        .duration(500)
+                        .attr("r", function(d) {
+                            return radius(d.emissions)
+                        })
+                        .style("fill", function(d) {
+                            return color_by_rank(d.rank)
+                        });
+
+
+
+                    // function to determine color of emission circle
+                    function color_by_rank(rank) {
+                        if (1 <= rank && rank <= 10) {
+                            return "red";
+                        } else if (11 <= +rank && rank <= 20) {
+                            return "yellow";
+                        } else if (21 <= +rank && rank <= 30) {
+                            return "orange";
+                        } else if (31 <= +rank && rank <= 40) {
+                            return "green"
+                        } else {
+                            return "blue";
+                        }
+                    }
+
+                } // end of else statement for plot_emissions_by_year
             } // end of plot_emissions_by_year
         } // end of plot_emissions
 
@@ -435,30 +432,28 @@
 </head>
 
 <body>
-	<div class="button_holder_home"> 
-	  <a href='world_index.html' class="button">Home</a> 
-	</div>
-	<div class="button_holder_chart"> 
-	  <a href='chart.html' class="button">Chart</a> 
-	</div>
-	<div class="title">
-	  <h1> Worldwide CO2 Increases 1850-2013
-	  </h1>
-	</div>
-    
-  <h2>2013 Emissions</h2>
-
-  <div class="select">
-    <div class="input">
-      <button class="animateButton" id="animateButton">Animate Decades</button>
-        <form id='yearForm' onsubmit="return false">
-          <input class="yearSelect" type="number" min=1850 max=2013 id="yearSelect" placeholder="Enter Year...">
-        </form>
+    <div class="button_holder_home">
+        <a href='world_index.html' class="button">Home</a>
     </div>
-  </div>
-  <script type="text/javascript">
+    <div class="button_holder_chart">
+        <a href='chart.html' class="button">Chart</a>
+    </div>
+    <div class="title">
+        <h1> Worldwide CO2 Increases 1850-2013
+	  </h1>
+    </div>
+    <h2>2013 Emissions</h2>
+    <div class="select">
+        <div class="input">
+            <button class="animateButton" id="animateButton">Animate Decades</button>
+            <form id='yearForm' onsubmit="return false">
+                <input class="yearSelect" type="number" min=1850 max=2013 id="yearSelect" placeholder="Enter Year...">
+            </form>
+        </div>
+    </div>
+    <script type="text/javascript">
     d3.json("data/world_countries_edited.json", draw)
-  </script>
+    </script>
 </body>
 
 </html>

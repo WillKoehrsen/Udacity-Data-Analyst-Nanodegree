@@ -1,3 +1,9 @@
+.WORLD {
+    stroke: black;
+    fill: black;
+    background-color: black;
+}
+
 .CHN, .USA, .IND {
     stroke:red;
     fill:red;
