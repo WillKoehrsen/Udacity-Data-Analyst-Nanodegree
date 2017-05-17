@@ -260,7 +260,7 @@
             if(country_list.length === 0) {
               d3.select(".instruction")
                 .transition()
-                .duration(1500)
+                .duration(1200)
                 .style("color", "darkblue");
             }
             else {
@@ -276,7 +276,7 @@
               }
               emissions_scale.domain([0.0, max + 100])
               g.select(".y.axis")
-                      .transition().duration(1500).ease("sin-in-out")
+                      .transition().duration(1200).ease("quart-in-out")
                       .call(count_axis); 
 
               for(var i=0; i<country_list.length; i+=1){
@@ -374,7 +374,7 @@
                     if (i < 16) {
                         d3.select("#chart")
                             .append("text")
-                            .text(d.emissions.toFixed(2) + " Mmt")
+                            .text(d.year + ": " + d.emissions.toFixed(2))
                             .attr("x", time_scale(d.year) - 40)
                             .attr("y", emissions_scale(d.emissions) - 10)
                             .attr("class", d.code)
@@ -382,7 +382,7 @@
                     } else {
                         d3.select("#chart")
                             .append("text")
-                            .text(d.emissions.toFixed(2) + " Mmt")
+                            .text(d.year + ": " + d.emissions.toFixed(2))
                             .attr("x", time_scale(d.year) - 110)
                             .attr("y", emissions_scale(d.emissions) - 10)
                             .attr("class", d.code)
@@ -437,7 +437,7 @@
 
 <body>
     <div class="button_holder_home">
-        <a href='world_index.html' class="button">Home</a>
+        <a href='index.html' class="button">Home</a>
     </div>
     <div class="button_holder_map">
         <a href='map.html' class="button">Map</a>
@@ -446,7 +446,7 @@
         <h1> Country CO2 Increases 1850-2013
     </h1>
         <h2 class="instruction"> Select a country to begin
-        </br> Axes scale automatically to data
+        </br> Vertical axis automatically scales to data
          </h2>
     </div>
     <div id="timeseries"></div>

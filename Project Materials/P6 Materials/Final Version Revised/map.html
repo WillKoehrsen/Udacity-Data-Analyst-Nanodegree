@@ -7,6 +7,7 @@
     <script src="http://d3js.org/d3.geo.projection.v0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/1.13.0/d3-legend.min.js"></script>
     <style>
+
     body {
         width: 1560px;
     }
@@ -92,6 +93,7 @@
     }
     
     .yearSelect {
+        color: black;
         width: 130px;
     }
     
@@ -124,7 +126,7 @@
         height: 40px;
         padding: 2px;
         font: 12px sans-serif;
-        background: lightsteelblue;
+        background: orange;
         pointer-events: none;
         border-radius: 6px;
     }
@@ -319,7 +321,7 @@
                         d3.select("h2")
                             .transition()
                             .duration(1000)
-                            .text(year + " Emissions");
+                            .text(year + " Emissions")
                     };
 
                     // filter data by year parameter passed to function
@@ -433,7 +435,7 @@
 
 <body>
     <div class="button_holder_home">
-        <a href='world_index.html' class="button">Home</a>
+        <a href='index.html' class="button">Home</a>
     </div>
     <div class="button_holder_chart">
         <a href='chart.html' class="button">Chart</a>
