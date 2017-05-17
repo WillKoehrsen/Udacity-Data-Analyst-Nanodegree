@@ -1,7 +1,7 @@
 .WORLD {
-    stroke: black;
-    fill: black;
-    background-color: black;
+    stroke: grey;
+    fill: grey;
+    background-color: grey;
 }
 
 .CHN, .USA, .IND {
@@ -20,13 +20,13 @@
     background-color:orange;
 }
 .SAU, .BRA, .MEX {
-    stroke:blue;
-    fill:blue;
-    background-color:blue;
-}
-.GBR, .IDN, .ZAF {
     stroke:green;
     fill:green;
     background-color:green;
+}
+.GBR, .IDN, .ZAF {
+    stroke:blue;
+    fill:blue;
+    background-color:blue;
 }
 

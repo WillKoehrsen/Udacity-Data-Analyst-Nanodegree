@@ -62,9 +62,11 @@
     }
     
     h2 {
+        transform: translate(-10%, 320%);
         font-family: Helvetica;
-        position: relative;
-        left: 25%;
+        font-weight: normal;
+        color: darkblue;
+        font-size: 30px;
     }
     
     h3 {
@@ -116,13 +118,14 @@
     }
     
     #timeseries {
-        float: left;
+      float: left;
+      transform: translateY(-20%);
     }
     
     #key {
         float: left;
         position: relative;
-        transform: translate(25%, 20%);
+        transform: translate(25%, -5%);
     }
     </style>
     <link rel="stylesheet" type="text/css" href="style/country_styles.css" />
@@ -255,10 +258,16 @@
 
           function new_scale(country_list){
             if(country_list.length === 0) {
-              // text to display
+              d3.select(".instruction")
+                .transition()
+                .duration(1500)
+                .style("color", "darkblue");
             }
             else {
-              debugger;
+              d3.select(".instruction")
+                .transition()
+                .duration(500)
+                .style("color", "white");
               var max = 0
               for(var i=0; i<country_list.length; i+=1){
                 if(country_maxes[country_list[i]] > max){
@@ -436,6 +445,9 @@
     <div class="title">
         <h1> Country CO2 Increases 1850-2013
     </h1>
+        <h2 class="instruction"> Select a country to begin
+        </br> Axes scale automatically to data
+         </h2>
     </div>
     <div id="timeseries"></div>
     <div id="key">
