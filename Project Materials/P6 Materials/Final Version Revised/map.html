@@ -170,7 +170,7 @@
     <script type="text/javascript">
     // main function takes in geoJSON data and draws map
     function draw(geographic_data) {
-
+        var year_interval;
         // setting up svg element for map
         "use strict";
         var margin = 75,
@@ -295,7 +295,7 @@
 
                 var year_idx = 0;
 
-                var year_interval = setInterval(function() {
+                year_interval = setInterval(function() {
                         plot_emissions_by_year(years[year_idx]);
                         year_idx++;
 
@@ -311,7 +311,7 @@
 
             // function that handles what happens when user enters a year
             function handleClick() {
-
+                clearInterval(year_interval);
                 // get year from box and plot
                 plot_emissions_by_year(document.getElementById("yearSelect").value)
                 return false;
